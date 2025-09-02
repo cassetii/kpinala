@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor Teknisi AC</title>
+    <title>Monitor Teknisi AC - Simple Firebase</title>
     <style>
         * {
             margin: 0;
@@ -12,112 +12,69 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
         }
 
-        .app-container {
-            max-width: 100%;
-            min-height: 100vh;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
             background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        /* Header */
-        .app-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .header {
+            background: #4CAF50;
             color: white;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
         }
 
-        .app-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .app-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .connection-status {
+        .status {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-connected {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .status-disconnected {
-            background: #f44336;
-            color: white;
-        }
-
-        .status-loading {
+            top: 10px;
+            right: 10px;
             background: #ff9800;
             color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
         }
 
-        /* Tab Navigation */
-        .tab-nav {
+        .tabs {
             display: flex;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #e0e0e0;
         }
 
-        .tab-btn {
+        .tab {
             flex: 1;
             padding: 15px;
-            background: none;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            color: #666;
+            text-align: center;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
+            border: none;
+            background: #e0e0e0;
+            font-size: 16px;
         }
 
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            background: #f8f9ff;
+        .tab.active {
+            background: white;
+            color: #4CAF50;
+            font-weight: bold;
         }
 
-        .tab-btn:hover {
-            background: #f5f5f5;
+        .content {
+            padding: 30px;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
-            padding: 20px;
-            min-height: calc(100vh - 140px);
         }
 
         .tab-content.active {
             display: block;
-        }
-
-        /* Form Styles */
-        .form-container {
-            max-width: 500px;
-            margin: 0 auto;
         }
 
         .form-group {
@@ -126,1074 +83,613 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .form-group input, 
-        .form-group textarea, 
-        .form-group select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e1e1e1;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-group input:focus, 
-        .form-group textarea:focus, 
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .time-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .total-time {
-            grid-column: 1 / -1;
-            margin-top: 10px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Summary Styles */
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .summary-title {
-            font-size: 1.5rem;
+            margin-bottom: 5px;
             font-weight: bold;
             color: #333;
         }
 
-        .export-btn {
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
             background: #4CAF50;
             color: white;
-            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .export-btn:hover {
-            background: #45a049;
-            transform: translateY(-1px);
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 5px;
         }
 
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .btn:hover {
+            background: #45a049;
         }
 
-        /* Filter Section */
-        .filter-section {
-            background: #f8f9ff;
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .message {
             padding: 15px;
-            border-radius: 12px;
             margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
         }
 
-        .filter-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        .search-box {
-            grid-column: 1 / -1;
-        }
-
-        /* Job List */
-        .jobs-container {
-            max-height: 60vh;
-            overflow-y: auto;
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .job-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
+            background: #f9f9f9;
+            padding: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 5px solid #667eea;
-            transition: transform 0.2s ease;
-            position: relative;
-        }
-
-        .job-card:hover {
-            transform: translateY(-2px);
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
         }
 
         .job-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
         .job-date {
             font-weight: bold;
-            color: #667eea;
-            font-size: 0.9rem;
+            color: #4CAF50;
         }
 
         .job-income {
             background: #4CAF50;
             color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
         }
 
         .job-details {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
         }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 5px 0;
-            border-bottom: 1px solid #f0f0f0;
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 600;
-            min-width: 80px;
-        }
-
-        .detail-value {
-            font-size: 0.9rem;
-            color: #333;
-            text-align: right;
-            flex: 1;
-            margin-left: 10px;
-        }
-
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: #d32f2f;
-            transform: scale(1.1);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-        }
-
-        .empty-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        /* Success Message */
-        .success-message {
+        .stat-card {
             background: #4CAF50;
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
             text-align: center;
-            font-weight: 600;
-            animation: slideDown 0.3s ease;
         }
 
-        .error-message {
-            background: #f44336;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-            animation: slideDown 0.3s ease;
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
         }
 
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .debug {
+            background: #f0f0f0;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .app-header {
-                padding: 15px;
-            }
-            
-            .app-title {
-                font-size: 1.5rem;
-            }
-            
-            .tab-btn {
-                padding: 12px 8px;
-                font-size: 12px;
-            }
-            
-            .tab-content {
-                padding: 15px;
-            }
-            
-            .filter-row {
+        @media (max-width: 600px) {
+            .time-inputs {
                 grid-template-columns: 1fr;
             }
-            
-            .summary-header {
-                text-align: center;
-            }
-            
-            .summary-title {
-                font-size: 1.3rem;
-            }
-            
-            .job-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .detail-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .detail-value {
-                text-align: left;
-                margin-left: 0;
-                margin-top: 2px;
+            .job-details {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <div class="app-header">
-            <div class="connection-status" id="connectionStatus">🔄 Menghubungkan...</div>
-            <h1 class="app-title">🔧 Monitor Teknisi AC</h1>
-            <p class="app-subtitle">Sistem Pemantauan Pekerjaan Teknisi dengan Firebase</p>
+    <div class="container">
+        <div class="header">
+            <div class="status" id="firebaseStatus">🔄 Connecting...</div>
+            <h1>🔧 Monitor Teknisi AC</h1>
+            <p>Firebase Database - Simple Version</p>
         </div>
 
-        <!-- Tab Navigation -->
-        <div class="tab-nav">
-            <button class="tab-btn active" data-tab="input">📝 Input Kerja</button>
-            <button class="tab-btn" data-tab="summary">📊 Summary</button>
-            <button class="tab-btn" data-tab="reports">📋 Laporan</button>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('input')">📝 Input Data</button>
+            <button class="tab" onclick="showTab('view')">📊 Lihat Data</button>
         </div>
 
-        <!-- Input Tab -->
-        <div class="tab-content active" id="input">
-            <div class="form-container">
-                <div id="successMessage" style="display: none;"></div>
-                <div id="errorMessage" style="display: none;"></div>
+        <div class="content">
+            <!-- INPUT TAB -->
+            <div id="input" class="tab-content active">
+                <h2>Input Pekerjaan Baru</h2>
+                
+                <div id="inputMessage" class="message"></div>
                 
                 <form id="jobForm">
                     <div class="form-group">
-                        <label for="technicianName">👨‍🔧 Nama Teknisi</label>
-                        <input type="text" id="technicianName" placeholder="Masukkan nama teknisi" required>
+                        <label>👨‍🔧 Nama Teknisi:</label>
+                        <input type="text" id="teknisi" required placeholder="Nama teknisi">
                     </div>
 
                     <div class="form-group">
-                        <label for="jobDate">📅 Tanggal</label>
-                        <input type="date" id="jobDate" required>
+                        <label>📅 Tanggal:</label>
+                        <input type="date" id="tanggal" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="serviceType">🛠️ Jasa</label>
-                        <input type="text" id="serviceType" placeholder="Contoh: Service AC 1 PK, Pasang AC Baru" required>
+                        <label>🛠️ Jenis Jasa:</label>
+                        <input type="text" id="jasa" required placeholder="Contoh: Service AC 1 PK">
                     </div>
 
                     <div class="form-group">
-                        <label>⏰ Waktu Kerja</label>
-                        <div class="time-row">
+                        <label>⏰ Waktu Kerja:</label>
+                        <div class="time-inputs">
                             <div>
-                                <input type="time" id="startTime" placeholder="Mulai" required>
+                                <label>Mulai:</label>
+                                <input type="time" id="waktuMulai" required>
                             </div>
                             <div>
-                                <input type="time" id="endTime" placeholder="Selesai" required>
+                                <label>Selesai:</label>
+                                <input type="time" id="waktuSelesai" required>
+                            </div>
+                            <div>
+                                <label>Total:</label>
+                                <input type="text" id="totalWaktu" readonly style="background:#f0f0f0;">
                             </div>
                         </div>
-                        <div class="total-time">
-                            <input type="text" id="totalTime" placeholder="Total waktu akan dihitung otomatis" readonly style="background: #f8f9ff; color: #667eea; font-weight: 600;">
-                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="customerName">👤 Nama Customer</label>
-                        <input type="text" id="customerName" placeholder="Nama pelanggan" required>
+                        <label>👤 Nama Customer:</label>
+                        <input type="text" id="customer" required placeholder="Nama pelanggan">
                     </div>
 
                     <div class="form-group">
-                        <label for="customerPhone">📞 Nomor Telepon</label>
-                        <input type="tel" id="customerPhone" placeholder="08xxxxxxxxxx" required>
+                        <label>📞 No. Telepon:</label>
+                        <input type="tel" id="telepon" required placeholder="08xxxxxxxxxx">
                     </div>
 
                     <div class="form-group">
-                        <label for="customerAddress">📍 Alamat</label>
-                        <textarea id="customerAddress" rows="3" placeholder="Alamat lengkap pelanggan" required></textarea>
+                        <label>📍 Alamat:</label>
+                        <textarea id="alamat" rows="3" required placeholder="Alamat lengkap"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="income">💰 Pemasukan (Rp)</label>
-                        <input type="number" id="income" min="0" placeholder="0" required>
+                        <label>💰 Pemasukan (Rp):</label>
+                        <input type="number" id="pemasukan" required min="0" placeholder="0">
                     </div>
 
-                    <button type="submit" class="submit-btn" id="submitBtn">
-                        💾 Simpan ke Firebase
-                    </button>
+                    <button type="submit" class="btn" id="saveBtn">💾 SIMPAN KE DATABASE</button>
                 </form>
-            </div>
-        </div>
 
-        <!-- Summary Tab -->
-        <div class="tab-content" id="summary">
-            <div class="summary-header">
-                <h2 class="summary-title">📊 Summary Pekerjaan</h2>
-                <button class="export-btn" onclick="exportData()">📁 Export Data</button>
+                <div id="debugLog" class="debug"></div>
             </div>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalJobs">0</div>
-                    <div class="stat-label">Total Pekerjaan</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalIncome">Rp 0</div>
-                    <div class="stat-label">Total Pemasukan</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalHours">0h</div>
-                    <div class="stat-label">Total Jam Kerja</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="avgIncome">Rp 0</div>
-                    <div class="stat-label">Rata-rata Pemasukan</div>
-                </div>
-            </div>
-
-            <!-- Filter Section -->
-            <div class="filter-section">
-                <div class="filter-row">
-                    <div>
-                        <input type="date" id="filterDateFrom" placeholder="Dari tanggal">
+            <!-- VIEW TAB -->
+            <div id="view" class="tab-content">
+                <h2>Data Pekerjaan</h2>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPekerjaan">0</div>
+                        <div class="stat-label">Total Pekerjaan</div>
                     </div>
-                    <div>
-                        <input type="date" id="filterDateTo" placeholder="Sampai tanggal">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPendapatan">Rp 0</div>
+                        <div class="stat-label">Total Pendapatan</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalJam">0 Jam</div>
+                        <div class="stat-label">Total Jam Kerja</div>
                     </div>
                 </div>
-                <div class="search-box">
-                    <input type="text" id="searchFilter" placeholder="🔍 Cari teknisi, customer, atau jasa...">
-                </div>
-            </div>
 
-            <!-- Jobs List -->
-            <div class="jobs-container" id="jobsList">
-                <div class="empty-state">
-                    <div class="loading"></div>
-                    <p>Memuat data dari Firebase...</p>
-                </div>
-            </div>
-        </div>
+                <button class="btn" onclick="exportCSV()" style="margin-bottom: 20px;">📁 Export CSV</button>
 
-        <!-- Reports Tab -->
-        <div class="tab-content" id="reports">
-            <div class="summary-header">
-                <h2 class="summary-title">📋 Laporan Detail</h2>
-                <button class="export-btn" onclick="exportReport()">📄 Export Laporan</button>
-            </div>
-            
-            <div id="reportContent">
-                <div class="empty-state">
-                    <div class="loading"></div>
-                    <p>Menganalisis data...</p>
-                </div>
+                <div id="jobsList"></div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase SDK (No Auth Version)
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+    <!-- Firebase SDK v8 (Most Compatible) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        // Firebase configuration
+    <script>
+        // FIREBASE CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyDRqVYfBdEkOZ9qYNiIRl8uTnM1stl5lBo",
             authDomain: "kpiteknisi.firebaseapp.com",
             projectId: "kpiteknisi",
             storageBucket: "kpiteknisi.firebasestorage.app",
             messagingSenderId: "61025162198",
-            appId: "1:61025162198:web:084518dca837cbaed40a77",
-            measurementId: "G-1V5KSQEWEZ"
+            appId: "1:61025162198:web:084518dca837cbaed40a77"
         };
 
-        // Initialize Firebase (No Auth)
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // INITIALIZE FIREBASE
+        console.log('🚀 Initializing Firebase...');
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
         
-        // Initialize Analytics with error handling (optional)
-        let analytics = null;
-        try {
-            const { getAnalytics } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js');
-            analytics = getAnalytics(app);
-            console.log('✅ Analytics initialized');
-        } catch (error) {
-            console.log('ℹ️ Analytics not available:', error.message);
-        }
-
-        // Global variables (No Auth)
-        window.jobs = [];
-        window.filteredJobs = [];
-        window.db = db;
-        window.addDoc = addDoc;
-        window.collection = collection;
-        window.getDocs = getDocs;
-        window.deleteDoc = deleteDoc;
-        window.doc = doc;
-
-        // Update connection status
-        function updateConnectionStatus(status, message = '') {
-            const statusEl = document.getElementById('connectionStatus');
-            switch(status) {
-                case 'connected':
-                    statusEl.textContent = '✅ Terhubung Firebase';
-                    statusEl.className = 'connection-status status-connected';
-                    break;
-                case 'loading':
-                    statusEl.textContent = '🔄 Memuat data...';
-                    statusEl.className = 'connection-status status-loading';
-                    break;
-                case 'error':
-                    statusEl.textContent = '❌ Error Firebase';
-                    statusEl.className = 'connection-status status-disconnected';
-                    statusEl.title = message;
-                    break;
-                case 'ready':
-                    statusEl.textContent = '🚀 Siap digunakan';
-                    statusEl.className = 'connection-status status-connected';
-                    break;
-            }
-        }
-
-        // Load jobs from Firebase (Simplified - No Auth)
-        async function loadJobsFromFirebase() {
-            try {
-                updateConnectionStatus('loading');
-                console.log('🔄 Loading data from Firebase...');
-                
-                // Add timeout to prevent hanging
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout: Koneksi terlalu lama')), 15000)
-                );
-
-                const dataPromise = (async () => {
-                    const q = query(collection(db, 'jobs'), orderBy('date', 'desc'));
-                    const querySnapshot = await getDocs(q);
-                    
-                    window.jobs = [];
-                    querySnapshot.forEach((doc) => {
-                        window.jobs.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
-                    });
-                    
-                    return window.jobs;
-                })();
-
-                await Promise.race([dataPromise, timeoutPromise]);
-                
-                updateConnectionStatus('connected');
-                updateUI();
-                console.log('✅ Data berhasil dimuat:', window.jobs.length, 'pekerjaan');
-                
-            } catch (error) {
-                console.error('❌ Error loading Firebase data:', error);
-                updateConnectionStatus('error', error.message);
-                
-                // User-friendly error messages
-                let errorMsg = 'Gagal memuat data dari Firebase';
-                
-                if (error.code === 'permission-denied') {
-                    errorMsg = '🔒 Akses ditolak. Pastikan Firestore Rules sudah di-set ke "test mode".';
-                } else if (error.code === 'unavailable') {
-                    errorMsg = '🌐 Firebase tidak tersedia. Periksa koneksi internet Anda.';
-                } else if (error.message.includes('Timeout')) {
-                    errorMsg = '⏰ Koneksi timeout. Firebase mungkin sedang lambat.';
-                } else if (error.code === 'not-found') {
-                    errorMsg = '📋 Database Firebase belum dibuat. Buat Firestore Database terlebih dahulu.';
-                }
-                
-                showError(errorMsg + '<br><small>Detail teknis: ' + error.message + '</small>');
-            }
-        }
-
-        // Save job to Firebase (Simplified - No Auth)
-        async function saveJobToFirebase(jobData) {
-            try {
-                updateConnectionStatus('loading');
-                console.log('💾 Saving to Firebase...');
-                
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout: Penyimpanan terlalu lama')), 15000)
-                );
-
-                const savePromise = addDoc(collection(db, 'jobs'), jobData);
-                const docRef = await Promise.race([savePromise, timeoutPromise]);
-                
-                jobData.id = docRef.id;
-                window.jobs.unshift(jobData);
-                updateConnectionStatus('connected');
-                updateUI();
-                
-                console.log('✅ Data saved with ID:', docRef.id);
-                return docRef.id;
-                
-            } catch (error) {
-                console.error('❌ Error saving to Firebase:', error);
-                updateConnectionStatus('error', error.message);
-                
-                let errorMsg = 'Gagal menyimpan ke Firebase';
-                
-                if (error.code === 'permission-denied') {
-                    errorMsg = '🔒 Akses ditolak saat menyimpan. Periksa Firestore Rules.';
-                } else if (error.code === 'unavailable') {
-                    errorMsg = '🌐 Firebase tidak tersedia saat menyimpan.';
-                } else if (error.message.includes('Timeout')) {
-                    errorMsg = '⏰ Timeout saat menyimpan data.';
-                }
-                
-                throw new Error(errorMsg + ': ' + error.message);
-            }
-        }
-
-        // Delete job from Firebase (Simplified - No Auth)
-        async function deleteJobFromFirebase(jobId) {
-            try {
-                updateConnectionStatus('loading');
-                console.log('🗑️ Deleting from Firebase:', jobId);
-                
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout: Penghapusan terlalu lama')), 15000)
-                );
-
-                const deletePromise = deleteDoc(doc(db, 'jobs', jobId));
-                await Promise.race([deletePromise, timeoutPromise]);
-                
-                window.jobs = window.jobs.filter(job => job.id !== jobId);
-                updateConnectionStatus('connected');
-                updateUI();
-                showSuccess('✅ Pekerjaan berhasil dihapus dari Firebase!');
-                
-            } catch (error) {
-                console.error('❌ Error deleting from Firebase:', error);
-                updateConnectionStatus('error', error.message);
-                
-                let errorMsg = 'Gagal menghapus data';
-                if (error.code === 'permission-denied') {
-                    errorMsg = '🔒 Akses ditolak saat menghapus.';
-                }
-                
-                showError(errorMsg + ': ' + error.message);
-            }
-        }
-
-        // Make functions globally available (No Auth)
-        window.loadJobsFromFirebase = loadJobsFromFirebase;
-        window.saveJobToFirebase = saveJobToFirebase;
-        window.deleteJobFromFirebase = deleteJobFromFirebase;
-
-        // Retry mechanism for failed operations
-        async function retryOperation(operation, maxRetries = 3) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    console.warn(`🔄 Retry ${i + 1}/${maxRetries} failed:`, error.message);
-                    if (i === maxRetries - 1) throw error;
-                    
-                    // Wait before retry (exponential backoff)
-                    const delay = Math.min(Math.pow(2, i) * 1000, 5000); // Max 5 seconds
-                    console.log(`⏱️ Waiting ${delay}ms before retry...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        // Simple initialization without authentication
-        async function initializeApp() {
-            console.log('🚀 Initializing Firebase App (No Auth)...');
-            
-            try {
-                updateConnectionStatus('loading');
-                
-                // Test Firebase connection first
-                console.log('🔍 Testing Firebase connection...');
-                
-                // Try to load data with retry mechanism
-                await retryOperation(() => loadJobsFromFirebase(), 3);
-                
-                updateConnectionStatus('ready');
-                console.log('✅ Firebase App initialized successfully!');
-                
-            } catch (error) {
-                console.error('❌ Firebase initialization failed:', error);
-                updateConnectionStatus('error', error.message);
-                
-                // Show helpful setup message
-                const setupMessage = `
-                    <strong>⚠️ Setup Firebase diperlukan:</strong><br><br>
-                    <strong>1. Buat Firestore Database:</strong><br>
-                    • Buka <a href="https://console.firebase.google.com/project/kpiteknisi/firestore" target="_blank">Firebase Console</a><br>
-                    • Klik "Create database" → "Start in test mode"<br><br>
-                    
-                    <strong>2. Set Firestore Rules:</strong><br>
-                    • Di tab "Rules", ganti dengan:<br>
-                    <code>allow read, write: if true;</code><br><br>
-                    
-                    <strong>3. Refresh halaman ini</strong><br><br>
-                    
-                    <small>Detail error: ${error.message}</small>
-                `;
-                
-                showError(setupMessage);
-            }
-        }
-
-        // ===== MOVE ALL FORM LOGIC HERE TO MODULE SCRIPT =====
+        // GLOBAL VARIABLES
+        let allJobs = [];
         
-        // Utility functions
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
-
-        function formatDate(dateString) {
-            const options = { 
-                weekday: 'short', 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            };
-            return new Date(dateString).toLocaleDateString('id-ID', options);
-        }
-
-        function calculateHours(startTime, endTime) {
-            const start = new Date(`2000-01-01 ${startTime}`);
-            const end = new Date(`2000-01-01 ${endTime}`);
-            const diff = end - start;
-            return diff / (1000 * 60 * 60);
-        }
-
-        function showSuccess(message) {
-            const successMessage = document.getElementById('successMessage');
-            const errorMessage = document.getElementById('errorMessage');
-            successMessage.innerHTML = `<div class="success-message">${message}</div>`;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        function showError(message) {
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            errorMessage.innerHTML = `<div class="error-message">${message}</div>`;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            
-            // Show retry button if available
-            if (window.showRetryButton) {
-                window.showRetryButton();
-            }
-            
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 8000); // Longer timeout for error messages
-        }
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📱 DOM Content Loaded - Setting up app...');
-            
-            // Set today's date
-            document.getElementById('jobDate').valueAsDate = new Date();
-            
-            // Get all DOM elements
-            const form = document.getElementById('jobForm');
-            const startTimeInput = document.getElementById('startTime');
-            const endTimeInput = document.getElementById('endTime');
-            const totalTimeInput = document.getElementById('totalTime');
-            const submitBtn = document.getElementById('submitBtn');
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            // Time calculation function
-            function calculateTotalTime() {
-                const startTime = startTimeInput.value;
-                const endTime = endTimeInput.value;
-                
-                if (startTime && endTime) {
-                    const start = new Date(`2000-01-01 ${startTime}`);
-                    const end = new Date(`2000-01-01 ${endTime}`);
-                    
-                    if (end > start) {
-                        const diff = end - start;
-                        const hours = Math.floor(diff / (1000 * 60 * 60));
-                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                        totalTimeInput.value = `${hours}j ${minutes}m`;
-                    } else {
-                        totalTimeInput.value = '';
-                    }
-                }
-            }
-
-            // Add time calculation event listeners
-            startTimeInput.addEventListener('change', calculateTotalTime);
-            endTimeInput.addEventListener('change', calculateTotalTime);
-
-            // Set loading state for submit button
-            function setLoading(isLoading) {
-                submitBtn.disabled = isLoading;
-                if (isLoading) {
-                    submitBtn.innerHTML = '<div class="loading"></div> Menyimpan ke Firebase...';
-                } else {
-                    submitBtn.innerHTML = '💾 Simpan ke Firebase';
-                }
-            }
-
-            // Form submission handler
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                console.log('📝 Form submitted - processing...');
-
-                const jobData = {
-                    technician: document.getElementById('technicianName').value,
-                    date: document.getElementById('jobDate').value,
-                    service: document.getElementById('serviceType').value,
-                    startTime: startTimeInput.value,
-                    endTime: endTimeInput.value,
-                    totalTime: totalTimeInput.value,
-                    customer: document.getElementById('customerName').value,
-                    phone: document.getElementById('customerPhone').value,
-                    address: document.getElementById('customerAddress').value,
-                    income: parseInt(document.getElementById('income').value),
-                    createdAt: new Date().toISOString()
-                };
-
-                // Validate time
-                if (new Date(`2000-01-01 ${jobData.endTime}`) <= new Date(`2000-01-01 ${jobData.startTime}`)) {
-                    showError('⚠️ Waktu selesai harus lebih besar dari waktu mulai!');
-                    return;
-                }
-
-                try {
-                    setLoading(true);
-                    console.log('💾 Saving job data to Firebase...', jobData);
-                    
-                    // Call the Firebase function directly (it's in the same scope now)
-                    await saveJobToFirebase(jobData);
-                    
-                    // Reset form
-                    form.reset();
-                    document.getElementById('jobDate').valueAsDate = new Date();
-                    totalTimeInput.value = '';
-
-                    showSuccess('✅ Pekerjaan berhasil disimpan ke Firebase!');
-                } catch (error) {
-                    console.error('❌ Form submission error:', error);
-                    showError('❌ ' + error.message);
-                } finally {
-                    setLoading(false);
-                }
-            });
-
-            // Tab switching
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetTab = this.dataset.tab;
-                    
-                    // Update buttons
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update content
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    document.getElementById(targetTab).classList.add('active');
-                    
-                    // Update content if switching to specific tabs
-                    if (targetTab === 'summary') {
-                        updateUI();
-                    } else if (targetTab === 'reports') {
-                        generateReport();
-                    }
-                });
-            });
-
-            // Make functions globally available
-            window.showSuccess = showSuccess;
-            window.showError = showError;
-            window.formatCurrency = formatCurrency;
-            window.formatDate = formatDate;
-            window.calculateHours = calculateHours;
-            
-            // Add retry button to header
-            const header = document.querySelector('.app-header');
-            const retryBtn = document.createElement('button');
-            retryBtn.innerHTML = '🔄 Coba Lagi';
-            retryBtn.style.cssText = `
-                position: absolute;
-                top: 15px;
-                left: 15px;
-                background: rgba(255,255,255,0.2);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.3);
-                border-radius: 20px;
-                padding: 8px 15px;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                display: none;
-                transition: all 0.3s ease;
-            `;
-            retryBtn.onmouseover = () => {
-                retryBtn.style.background = 'rgba(255,255,255,0.3)';
-            };
-            retryBtn.onmouseout = () => {
-                retryBtn.style.background = 'rgba(255,255,255,0.2)';
-            };
-            retryBtn.onclick = () => {
-                retryBtn.style.display = 'none';
-                initializeApp();
-            };
-            header.appendChild(retryBtn);
-            
-            // Show retry button on error
-            window.showRetryButton = () => {
-                retryBtn.style.display = 'block';
-            };
-            
-            // Start initialization
-            setTimeout(() => {
-                initializeApp();
-            }, 500); // Small delay to ensure DOM is fully ready
-        });
-    </script>
-
-    <script>
-        // DOM Elements
+        // DOM ELEMENTS
         const form = document.getElementById('jobForm');
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const successMessage = document.getElementById('successMessage');
-        const errorMessage = document.getElementById('errorMessage');
+        const saveBtn = document.getElementById('saveBtn');
+        const debugLog = document.getElementById('debugLog');
+        const firebaseStatus = document.getElementById('firebaseStatus');
+        const inputMessage = document.getElementById('inputMessage');
 
-        // Time inputs
-        const startTimeInput = document.getElementById('startTime');
-        const endTimeInput = document.getElementById('endTime');
-        const totalTimeInput = document.getElementById('totalTime');
-        const submitBtn = document.getElementById('submitBtn');
-
-        // Filter elements
-        const filterDateFrom = document.getElementById('filterDateFrom');
-        const filterDateTo = document.getElementById('filterDateTo');
-        const searchFilter = document.getElementById('searchFilter');
-
-        // Stats elements
-        const totalJobsEl = document.getElementById('totalJobs');
-        const totalIncomeEl = document.getElementById('totalIncome');
-        const totalHoursEl = document.getElementById('totalHours');
-        const avgIncomeEl = document.getElementById('avgIncome');
-        const jobsListEl = document.getElementById('jobsList');
-        const reportContentEl = document.getElementById('reportContent');
-
-        // Tab switching
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const targetTab = this.dataset.tab;
-                switchTab(targetTab);
-            });
-        });
-
-        function switchTab(tabName) {
-            // Update buttons
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            
-            // Update content
-            tabContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            
-            // Update content if switching to specific tabs
-            if (tabName === 'summary') {
-                updateUI();
-            } else if (tabName === 'reports') {
-                generateReport();
-            }
+        // DEBUG FUNCTION
+        function debug(message) {
+            console.log(message);
+            const time = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `[${time}] ${message}<br>`;
+            debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // Time calculation
-        function calculateTotalTime() {
-            const startTime = startTimeInput.value;
-            const endTime = endTimeInput.value;
+        // STATUS UPDATE
+        function updateStatus(text, color = '#ff9800') {
+            firebaseStatus.textContent = text;
+            firebaseStatus.style.background = color;
+            debug(`Status: ${text}`);
+        }
+
+        // SHOW MESSAGE
+        function showMessage(text, isError = false) {
+            inputMessage.textContent = text;
+            inputMessage.className = `message ${isError ? 'error' : 'success'}`;
+            inputMessage.style.display = 'block';
+            setTimeout(() => {
+                inputMessage.style.display = 'none';
+            }, 5000);
+            debug(`Message: ${text}`);
+        }
+
+        // SET TODAY'S DATE
+        document.getElementById('tanggal').valueAsDate = new Date();
+
+        // TIME CALCULATION
+        function hitungWaktu() {
+            const mulai = document.getElementById('waktuMulai').value;
+            const selesai = document.getElementById('waktuSelesai').value;
             
-            if (startTime && endTime) {
-                const start = new Date(`2000-01-01 ${startTime}`);
-                const end = new Date(`2000-01-01 ${endTime}`);
+            if (mulai && selesai) {
+                const start = new Date(`2000-01-01 ${mulai}`);
+                const end = new Date(`2000-01-01 ${selesai}`);
                 
                 if (end > start) {
                     const diff = end - start;
                     const hours = Math.floor(diff / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    totalTimeInput.value = `${hours}j ${minutes}m`;
+                    document.getElementById('totalWaktu').value = `${hours}j ${minutes}m`;
                 } else {
-                    totalTimeInput.value = '';
+                    document.getElementById('totalWaktu').value = '';
                 }
             }
         }
 
-        startTimeInput.addEventListener('change', calculateTotalTime);
-        endTimeInput.addEventListener('change', calculateTotalTime);
+        // TIME EVENT LISTENERS
+        document.getElementById('waktuMulai').addEventListener('change', hitungWaktu);
+        document.getElementById('waktuSelesai').addEventListener('change', hitungWaktu);
 
-        // Utility functions
-        function formatCurrency(amount) {
+        // TEST FIREBASE CONNECTION
+        async function testFirebase() {
+            try {
+                debug('🔍 Testing Firebase connection...');
+                updateStatus('🔍 Testing...', '#ff9800');
+                
+                // Test with a simple read operation
+                const testQuery = await db.collection('jobs').limit(1).get();
+                
+                debug('✅ Firebase connection successful!');
+                updateStatus('✅ Connected', '#4CAF50');
+                
+                // Load existing data
+                await loadAllJobs();
+                
+            } catch (error) {
+                debug(`❌ Firebase test failed: ${error.message}`);
+                updateStatus('❌ Failed', '#f44336');
+                
+                let errorMsg = 'Firebase connection failed: ';
+                if (error.code === 'permission-denied') {
+                    errorMsg += 'Access denied. Please check Firestore rules.';
+                } else if (error.code === 'unavailable') {
+                    errorMsg += 'Service unavailable. Check internet connection.';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                showMessage(errorMsg, true);
+            }
+        }
+
+        // LOAD ALL JOBS
+        async function loadAllJobs() {
+            try {
+                debug('📖 Loading jobs from database...');
+                updateStatus('📖 Loading...', '#ff9800');
+                
+                const snapshot = await db.collection('jobs')
+                    .orderBy('tanggal', 'desc')
+                    .get();
+                
+                allJobs = [];
+                snapshot.forEach(doc => {
+                    allJobs.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                debug(`✅ Loaded ${allJobs.length} jobs`);
+                updateStatus('✅ Ready', '#4CAF50');
+                updateDisplay();
+                
+            } catch (error) {
+                debug(`❌ Load failed: ${error.message}`);
+                updateStatus('❌ Load Error', '#f44336');
+                showMessage('Failed to load data: ' + error.message, true);
+            }
+        }
+
+        // SAVE JOB TO FIREBASE
+        async function saveJob(jobData) {
+            try {
+                debug('💾 Saving to Firebase...');
+                updateStatus('💾 Saving...', '#ff9800');
+                
+                const docRef = await db.collection('jobs').add(jobData);
+                
+                debug(`✅ Saved with ID: ${docRef.id}`);
+                updateStatus('✅ Saved!', '#4CAF50');
+                
+                // Add to local array
+                allJobs.unshift({
+                    id: docRef.id,
+                    ...jobData
+                });
+                
+                updateDisplay();
+                showMessage('✅ Data berhasil disimpan ke database!');
+                
+                // Reset status after 3 seconds
+                setTimeout(() => {
+                    updateStatus('✅ Ready', '#4CAF50');
+                }, 3000);
+                
+                return docRef.id;
+                
+            } catch (error) {
+                debug(`❌ Save failed: ${error.message}`);
+                updateStatus('❌ Save Error', '#f44336');
+                throw error;
+            }
+        }
+
+        // FORM SUBMIT HANDLER
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            debug('📝 Form submitted');
+            
+            // Validate time
+            const mulai = document.getElementById('waktuMulai').value;
+            const selesai = document.getElementById('waktuSelesai').value;
+            
+            if (new Date(`2000-01-01 ${selesai}`) <= new Date(`2000-01-01 ${mulai}`)) {
+                showMessage('⚠️ Waktu selesai harus lebih besar dari waktu mulai!', true);
+                return;
+            }
+            
+            // Prepare data
+            const jobData = {
+                teknisi: document.getElementById('teknisi').value.trim(),
+                tanggal: document.getElementById('tanggal').value,
+                jasa: document.getElementById('jasa').value.trim(),
+                waktuMulai: mulai,
+                waktuSelesai: selesai,
+                totalWaktu: document.getElementById('totalWaktu').value,
+                customer: document.getElementById('customer').value.trim(),
+                telepon: document.getElementById('telepon').value.trim(),
+                alamat: document.getElementById('alamat').value.trim(),
+                pemasukan: parseInt(document.getElementById('pemasukan').value),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            debug(`Data to save: ${JSON.stringify(jobData, null, 2)}`);
+            
+            try {
+                // Disable button
+                saveBtn.disabled = true;
+                saveBtn.textContent = '💾 MENYIMPAN...';
+                
+                await saveJob(jobData);
+                
+                // Reset form
+                form.reset();
+                document.getElementById('tanggal').valueAsDate = new Date();
+                
+                debug('✅ Form reset complete');
+                
+            } catch (error) {
+                debug(`❌ Submit failed: ${error.message}`);
+                showMessage('❌ Gagal menyimpan: ' + error.message, true);
+            } finally {
+                // Re-enable button
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 SIMPAN KE DATABASE';
+            }
+        });
+
+        // UPDATE DISPLAY
+        function updateDisplay() {
+            updateStats();
+            displayJobs();
+        }
+
+        // UPDATE STATISTICS
+        function updateStats() {
+            const totalPekerjaan = allJobs.length;
+            const totalPendapatan = allJobs.reduce((sum, job) => sum + (job.pemasukan || 0), 0);
+            
+            let totalJam = 0;
+            allJobs.forEach(job => {
+                if (job.waktuMulai && job.waktuSelesai) {
+                    const start = new Date(`2000-01-01 ${job.waktuMulai}`);
+                    const end = new Date(`2000-01-01 ${job.waktuSelesai}`);
+                    const diff = end - start;
+                    totalJam += diff / (1000 * 60 * 60);
+                }
+            });
+
+            document.getElementById('totalPekerjaan').textContent = totalPekerjaan;
+            document.getElementById('totalPendapatan').textContent = formatRupiah(totalPendapatan);
+            document.getElementById('totalJam').textContent = `${Math.round(totalJam * 10) / 10} Jam`;
+        }
+
+        // DISPLAY JOBS LIST
+        function displayJobs() {
+            const container = document.getElementById('jobsList');
+            
+            if (allJobs.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        📋 Belum ada data pekerjaan<br>
+                        <small>Tambahkan data baru di tab Input Data</small>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = allJobs.map(job => `
+                <div class="job-card">
+                    <div class="job-header">
+                        <div class="job-date">${formatTanggal(job.tanggal)}</div>
+                        <div class="job-income">${formatRupiah(job.pemasukan || 0)}</div>
+                    </div>
+                    <div class="job-details">
+                        <div><strong>Teknisi:</strong> ${job.teknisi || '-'}</div>
+                        <div><strong>Jasa:</strong> ${job.jasa || '-'}</div>
+                        <div><strong>Customer:</strong> ${job.customer || '-'}</div>
+                        <div><strong>Telepon:</strong> ${job.telepon || '-'}</div>
+                        <div><strong>Waktu:</strong> ${job.waktuMulai || '-'} - ${job.waktuSelesai || '-'}</div>
+                        <div><strong>Total:</strong> ${job.totalWaktu || '-'}</div>
+                        <div style="grid-column: 1 / -1;"><strong>Alamat:</strong> ${job.alamat || '-'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // TAB SWITCHING
+        function showTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'view') {
+                updateDisplay();
+            }
+            
+            debug(`Switched to ${tabName} tab`);
+        }
+
+        // EXPORT CSV
+        function exportCSV() {
+            if (allJobs.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+
+            const csvContent = [
+                ['Tanggal', 'Teknisi', 'Jasa', 'Customer', 'Telepon', 'Alamat', 'Mulai', 'Selesai', 'Total', 'Pemasukan'],
+                ...allJobs.map(job => [
+                    job.tanggal || '',
+                    job.teknisi || '',
+                    job.jasa || '',
+                    job.customer || '',
+                    job.telepon || '',
+                    (job.alamat || '').replace(/\n/g, ' '),
+                    job.waktuMulai || '',
+                    job.waktuSelesai || '',
+                    job.totalWaktu || '',
+                    job.pemasukan || 0
+                ])
+            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `data-teknisi-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            
+            debug('📁 CSV exported');
+        }
+
+        // UTILITY FUNCTIONS
+        function formatRupiah(amount) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
                 minimumFractionDigits: 0
-            }).format(amount);
+            }).format(amount || 0);
         }
 
-        function formatDate(dateString) {
+        function formatTanggal(dateString) {
+            if (!dateString) return '-';
             const options = { 
                 weekday: 'short', 
                 year: 'numeric', 
@@ -1203,393 +699,20 @@
             return new Date(dateString).toLocaleDateString('id-ID', options);
         }
 
-        function calculateHours(startTime, endTime) {
-            const start = new Date(`2000-01-01 ${startTime}`);
-            const end = new Date(`2000-01-01 ${endTime}`);
-            const diff = end - start;
-            return diff / (1000 * 60 * 60);
-        }
+        // MAKE FUNCTIONS GLOBAL
+        window.showTab = showTab;
+        window.exportCSV = exportCSV;
 
-        function showSuccess(message) {
-            successMessage.innerHTML = `<div class="success-message">${message}</div>`;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        function showError(message) {
-            errorMessage.innerHTML = `<div class="error-message">${message}</div>`;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            
-            // Show retry button if available
-            if (window.showRetryButton) {
-                window.showRetryButton();
-            }
-            
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 8000); // Longer timeout for error messages
-        }
-
-        function setLoading(isLoading) {
-            submitBtn.disabled = isLoading;
-            if (isLoading) {
-                submitBtn.innerHTML = '<div class="loading"></div> Menyimpan...';
-            } else {
-                submitBtn.innerHTML = '💾 Simpan ke Firebase';
-            }
-        }
-
-        // Form submission
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const jobData = {
-                technician: document.getElementById('technicianName').value,
-                date: document.getElementById('jobDate').value,
-                service: document.getElementById('serviceType').value,
-                startTime: startTimeInput.value,
-                endTime: endTimeInput.value,
-                totalTime: totalTimeInput.value,
-                customer: document.getElementById('customerName').value,
-                phone: document.getElementById('customerPhone').value,
-                address: document.getElementById('customerAddress').value,
-                income: parseInt(document.getElementById('income').value),
-                createdAt: new Date().toISOString()
-            };
-
-            // Validate time
-            if (new Date(`2000-01-01 ${jobData.endTime}`) <= new Date(`2000-01-01 ${jobData.startTime}`)) {
-                showError('⚠️ Waktu selesai harus lebih besar dari waktu mulai!');
-                return;
-            }
-
-            try {
-                setLoading(true);
-                await saveJobToFirebase(jobData);
-                
-                // Reset form
-                form.reset();
-                document.getElementById('jobDate').valueAsDate = new Date();
-                totalTimeInput.value = '';
-
-                showSuccess('✅ Pekerjaan berhasil disimpan ke Firebase!');
-            } catch (error) {
-                showError('❌ Gagal menyimpan ke Firebase: ' + error.message);
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        // Filter functionality
-        function applyFilters() {
-            let filtered = [...window.jobs];
-            
-            // Date filter
-            if (filterDateFrom.value) {
-                filtered = filtered.filter(job => job.date >= filterDateFrom.value);
-            }
-            
-            if (filterDateTo.value) {
-                filtered = filtered.filter(job => job.date <= filterDateTo.value);
-            }
-            
-            // Search filter
-            if (searchFilter.value) {
-                const search = searchFilter.value.toLowerCase();
-                filtered = filtered.filter(job => 
-                    job.technician.toLowerCase().includes(search) ||
-                    job.customer.toLowerCase().includes(search) ||
-                    job.service.toLowerCase().includes(search)
-                );
-            }
-            
-            window.filteredJobs = filtered;
-            renderJobs();
-        }
-
-        // Event listeners for filters
-        filterDateFrom.addEventListener('change', applyFilters);
-        filterDateTo.addEventListener('change', applyFilters);
-        searchFilter.addEventListener('input', applyFilters);
-
-        // Update statistics
-        function updateStats() {
-            const currentJobs = window.filteredJobs.length > 0 ? window.filteredJobs : window.jobs;
-            
-            const totalJobs = currentJobs.length;
-            const totalIncome = currentJobs.reduce((sum, job) => sum + job.income, 0);
-            const totalHours = currentJobs.reduce((sum, job) => {
-                return sum + calculateHours(job.startTime, job.endTime);
-            }, 0);
-            const avgIncome = totalJobs > 0 ? totalIncome / totalJobs : 0;
-
-            totalJobsEl.textContent = totalJobs;
-            totalIncomeEl.textContent = formatCurrency(totalIncome);
-            totalHoursEl.textContent = `${Math.round(totalHours * 10) / 10}h`;
-            avgIncomeEl.textContent = formatCurrency(avgIncome);
-        }
-
-        // Render jobs
-        function renderJobs() {
-            const currentJobs = window.filteredJobs.length > 0 ? window.filteredJobs : window.jobs;
-            
-            if (currentJobs.length === 0) {
-                jobsListEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <p>Tidak ada pekerjaan ditemukan</p>
-                        <p style="font-size: 0.9rem; margin-top: 5px;">Tambahkan pekerjaan baru atau ubah filter</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const sortedJobs = [...currentJobs].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            jobsListEl.innerHTML = sortedJobs.map(job => `
-                <div class="job-card">
-                    <button class="delete-btn" onclick="deleteJob('${job.id}')">×</button>
-                    <div class="job-header">
-                        <div class="job-date">${formatDate(job.date)}</div>
-                        <div class="job-income">${formatCurrency(job.income)}</div>
-                    </div>
-                    <div class="job-details">
-                        <div class="detail-row">
-                            <div class="detail-label">Teknisi</div>
-                            <div class="detail-value">${job.technician}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Jasa</div>
-                            <div class="detail-value">${job.service}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Customer</div>
-                            <div class="detail-value">${job.customer}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Telepon</div>
-                            <div class="detail-value">${job.phone}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Waktu</div>
-                            <div class="detail-value">${job.startTime} - ${job.endTime}</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">Alamat</div>
-                            <div class="detail-value">${job.address}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Delete job function
-        async function deleteJob(jobId) {
-            if (confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')) {
-                await deleteJobFromFirebase(jobId);
-            }
-        }
-
-        // Make deleteJob globally available
-        window.deleteJob = deleteJob;
-
-        // Generate reports
-        function generateReport() {
-            if (window.jobs.length === 0) {
-                reportContentEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📄</div>
-                        <p>Belum ada data untuk laporan</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Technician statistics
-            const technicianStats = {};
-            const customerStats = {};
-            const serviceStats = {};
-
-            window.jobs.forEach(job => {
-                // Technician stats
-                if (!technicianStats[job.technician]) {
-                    technicianStats[job.technician] = { jobs: 0, income: 0, hours: 0 };
-                }
-                technicianStats[job.technician].jobs++;
-                technicianStats[job.technician].income += job.income;
-                technicianStats[job.technician].hours += calculateHours(job.startTime, job.endTime);
-
-                // Customer stats
-                if (!customerStats[job.customer]) {
-                    customerStats[job.customer] = { jobs: 0, income: 0 };
-                }
-                customerStats[job.customer].jobs++;
-                customerStats[job.customer].income += job.income;
-
-                // Service stats
-                if (!serviceStats[job.service]) {
-                    serviceStats[job.service] = { jobs: 0, income: 0 };
-                }
-                serviceStats[job.service].jobs++;
-                serviceStats[job.service].income += job.income;
-            });
-
-            reportContentEl.innerHTML = `
-                <div style="margin-bottom: 30px;">
-                    <h3 style="margin-bottom: 15px; color: #667eea;">📊 Performa Teknisi</h3>
-                    ${Object.entries(technicianStats).map(([name, stats]) => `
-                        <div class="job-card">
-                            <div class="detail-row">
-                                <div class="detail-label">Teknisi</div>
-                                <div class="detail-value" style="font-weight: bold;">${name}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Pekerjaan</div>
-                                <div class="detail-value">${stats.jobs} pekerjaan</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Pemasukan</div>
-                                <div class="detail-value">${formatCurrency(stats.income)}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Jam Kerja</div>
-                                <div class="detail-value">${Math.round(stats.hours * 10) / 10} jam</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <div style="margin-bottom: 30px;">
-                    <h3 style="margin-bottom: 15px; color: #667eea;">🛠️ Jasa Populer</h3>
-                    ${Object.entries(serviceStats)
-                        .sort((a, b) => b[1].jobs - a[1].jobs)
-                        .slice(0, 5)
-                        .map(([service, stats]) => `
-                        <div class="job-card">
-                            <div class="detail-row">
-                                <div class="detail-label">Jasa</div>
-                                <div class="detail-value" style="font-weight: bold;">${service}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Frekuensi</div>
-                                <div class="detail-value">${stats.jobs} kali</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Total Pemasukan</div>
-                                <div class="detail-value">${formatCurrency(stats.income)}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <div>
-                    <h3 style="margin-bottom: 15px; color: #667eea;">👥 Customer Terbanyak</h3>
-                    ${Object.entries(customerStats)
-                        .sort((a, b) => b[1].jobs - a[1].jobs)
-                        .slice(0, 5)
-                        .map(([customer, stats]) => `
-                        <div class="job-card">
-                            <div class="detail-row">
-                                <div class="detail-label">Customer</div>
-                                <div class="detail-value" style="font-weight: bold;">${customer}</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Pekerjaan</div>
-                                <div class="detail-value">${stats.jobs} kali</div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Total Bayar</div>
-                                <div class="detail-value">${formatCurrency(stats.income)}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // Export functions
-        function exportData() {
-            if (window.jobs.length === 0) {
-                alert('⚠️ Tidak ada data untuk diekspor');
-                return;
-            }
-
-            const csvContent = [
-                ['Tanggal', 'Teknisi', 'Jasa', 'Customer', 'Telepon', 'Alamat', 'Mulai', 'Selesai', 'Total Waktu', 'Pemasukan'],
-                ...window.jobs.map(job => [
-                    job.date,
-                    job.technician,
-                    job.service,
-                    job.customer,
-                    job.phone,
-                    job.address.replace(/\n/g, ' '),
-                    job.startTime,
-                    job.endTime,
-                    job.totalTime,
-                    job.income
-                ])
-            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-
-            downloadFile('data-teknisi-ac.csv', csvContent);
-        }
-
-        function exportReport() {
-            if (window.jobs.length === 0) {
-                alert('⚠️ Tidak ada data untuk laporan');
-                return;
-            }
-
-            const totalIncome = window.jobs.reduce((sum, job) => sum + job.income, 0);
-            const totalHours = window.jobs.reduce((sum, job) => sum + calculateHours(job.startTime, job.endTime), 0);
-
-            const reportContent = `
-LAPORAN TEKNISI AC (Firebase Sync)
-==================================
-Tanggal: ${new Date().toLocaleDateString('id-ID')}
-Total Pekerjaan: ${window.jobs.length}
-Total Pemasukan: ${formatCurrency(totalIncome)}
-Total Jam Kerja: ${Math.round(totalHours * 10) / 10} jam
-
-DETAIL PEKERJAAN:
-${window.jobs.map((job, index) => `
-${index + 1}. ${formatDate(job.date)}
-   ID: ${job.id}
-   Teknisi: ${job.technician}
-   Jasa: ${job.service}
-   Customer: ${job.customer} (${job.phone})
-   Alamat: ${job.address.replace(/\n/g, ', ')}
-   Waktu: ${job.startTime} - ${job.endTime} (${job.totalTime})
-   Pemasukan: ${formatCurrency(job.income)}
-`).join('')}
-            `.trim();
-
-            downloadFile('laporan-teknisi-ac.txt', reportContent);
-        }
-
-        function downloadFile(filename, content) {
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-            URL.revokeObjectURL(link.href);
-        }
-
-        // Update UI
-        function updateUI() {
-            window.filteredJobs = [];
-            applyFilters();
-            updateStats();
-        }
-
-        // Make functions globally available
-        window.exportData = exportData;
-        window.exportReport = exportReport;
-        window.updateUI = updateUI;
+        // INITIALIZE APP
+        debug('🚀 App starting...');
+        
+        // Wait for Firebase to load, then test connection
+        setTimeout(() => {
+            debug('⏱️ Testing Firebase after 2 second delay...');
+            testFirebase();
+        }, 2000);
+        
+        debug('📱 App initialized');
     </script>
 </body>
 </html>
