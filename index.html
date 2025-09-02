@@ -639,7 +639,8 @@
     <script type="module">
         // Import Firebase SDK
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
         import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js';
 
         // Firebase configuration
@@ -656,20 +657,30 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        
+        // Initialize Analytics with error handling
+        let analytics = null;
+        try {
+            analytics = getAnalytics(app);
+        } catch (error) {
+            console.log('Analytics not available:', error);
+        }
 
         // Global variables
         window.jobs = [];
         window.filteredJobs = [];
         window.db = db;
+        window.auth = auth;
         window.addDoc = addDoc;
         window.collection = collection;
         window.getDocs = getDocs;
         window.deleteDoc = deleteDoc;
         window.doc = doc;
+        window.isAuthenticated = false;
 
         // Update connection status
-        function updateConnectionStatus(status) {
+        function updateConnectionStatus(status, message = '') {
             const statusEl = document.getElementById('connectionStatus');
             switch(status) {
                 case 'connected':
@@ -677,71 +688,169 @@
                     statusEl.className = 'connection-status status-connected';
                     break;
                 case 'loading':
-                    statusEl.textContent = '🔄 Memproses...';
+                    statusEl.textContent = '🔄 Menghubungkan...';
+                    statusEl.className = 'connection-status status-loading';
+                    break;
+                case 'authenticating':
+                    statusEl.textContent = '🔐 Autentikasi...';
                     statusEl.className = 'connection-status status-loading';
                     break;
                 case 'error':
                     statusEl.textContent = '❌ Error';
                     statusEl.className = 'connection-status status-disconnected';
+                    statusEl.title = message;
                     break;
             }
         }
 
-        // Load jobs from Firebase
+        // Authentication handler
+        function initAuth() {
+            return new Promise((resolve, reject) => {
+                updateConnectionStatus('authenticating');
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log('User authenticated:', user.uid);
+                        window.isAuthenticated = true;
+                        resolve(user);
+                    } else {
+                        console.log('No user, signing in anonymously...');
+                        signInAnonymously(auth).then((result) => {
+                            console.log('Anonymous auth successful:', result.user.uid);
+                            window.isAuthenticated = true;
+                            resolve(result.user);
+                        }).catch((error) => {
+                            console.error('Anonymous auth failed:', error);
+                            window.isAuthenticated = false;
+                            reject(error);
+                        });
+                    }
+                });
+            });
+        }
+
+        // Load jobs from Firebase with better error handling
         async function loadJobsFromFirebase() {
             try {
+                if (!window.isAuthenticated) {
+                    console.log('Waiting for authentication...');
+                    await initAuth();
+                }
+
                 updateConnectionStatus('loading');
-                const q = query(collection(db, 'jobs'), orderBy('date', 'desc'));
-                const querySnapshot = await getDocs(q);
                 
-                window.jobs = [];
-                querySnapshot.forEach((doc) => {
-                    window.jobs.push({
-                        id: doc.id,
-                        ...doc.data()
+                // Add timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout loading data')), 10000)
+                );
+
+                const dataPromise = (async () => {
+                    const q = query(collection(db, 'jobs'), orderBy('date', 'desc'));
+                    const querySnapshot = await getDocs(q);
+                    
+                    window.jobs = [];
+                    querySnapshot.forEach((doc) => {
+                        window.jobs.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
                     });
-                });
+                    
+                    return window.jobs;
+                })();
+
+                await Promise.race([dataPromise, timeoutPromise]);
                 
                 updateConnectionStatus('connected');
                 updateUI();
-                console.log('Data berhasil dimuat dari Firebase:', window.jobs.length, 'pekerjaan');
+                console.log('✅ Data berhasil dimuat dari Firebase:', window.jobs.length, 'pekerjaan');
+                
             } catch (error) {
-                console.error('Error loading data from Firebase:', error);
-                updateConnectionStatus('error');
-                showError('Gagal memuat data dari Firebase: ' + error.message);
+                console.error('❌ Error loading data from Firebase:', error);
+                updateConnectionStatus('error', error.message);
+                
+                // Show user-friendly error message
+                let errorMsg = 'Gagal memuat data dari Firebase';
+                if (error.code === 'permission-denied') {
+                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                } else if (error.code === 'unavailable') {
+                    errorMsg = 'Firebase tidak tersedia. Periksa koneksi internet.';
+                } else if (error.message.includes('Timeout')) {
+                    errorMsg = 'Koneksi timeout. Coba lagi.';
+                }
+                
+                showError(errorMsg + ' Detail: ' + error.message);
             }
         }
 
-        // Save job to Firebase
+        // Save job to Firebase with better error handling
         async function saveJobToFirebase(jobData) {
             try {
+                if (!window.isAuthenticated) {
+                    await initAuth();
+                }
+
                 updateConnectionStatus('loading');
-                const docRef = await addDoc(collection(db, 'jobs'), jobData);
+                
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout saving data')), 10000)
+                );
+
+                const savePromise = addDoc(collection(db, 'jobs'), jobData);
+                const docRef = await Promise.race([savePromise, timeoutPromise]);
+                
                 jobData.id = docRef.id;
                 window.jobs.unshift(jobData);
                 updateConnectionStatus('connected');
                 updateUI();
                 return docRef.id;
+                
             } catch (error) {
-                console.error('Error saving to Firebase:', error);
-                updateConnectionStatus('error');
-                throw error;
+                console.error('❌ Error saving to Firebase:', error);
+                updateConnectionStatus('error', error.message);
+                
+                let errorMsg = 'Gagal menyimpan ke Firebase';
+                if (error.code === 'permission-denied') {
+                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                } else if (error.code === 'unavailable') {
+                    errorMsg = 'Firebase tidak tersedia. Periksa koneksi internet.';
+                }
+                
+                throw new Error(errorMsg + ': ' + error.message);
             }
         }
 
-        // Delete job from Firebase
+        // Delete job from Firebase with better error handling
         async function deleteJobFromFirebase(jobId) {
             try {
+                if (!window.isAuthenticated) {
+                    await initAuth();
+                }
+
                 updateConnectionStatus('loading');
-                await deleteDoc(doc(db, 'jobs', jobId));
+                
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout deleting data')), 10000)
+                );
+
+                const deletePromise = deleteDoc(doc(db, 'jobs', jobId));
+                await Promise.race([deletePromise, timeoutPromise]);
+                
                 window.jobs = window.jobs.filter(job => job.id !== jobId);
                 updateConnectionStatus('connected');
                 updateUI();
-                showSuccess('Pekerjaan berhasil dihapus!');
+                showSuccess('✅ Pekerjaan berhasil dihapus!');
+                
             } catch (error) {
-                console.error('Error deleting from Firebase:', error);
-                updateConnectionStatus('error');
-                showError('Gagal menghapus data: ' + error.message);
+                console.error('❌ Error deleting from Firebase:', error);
+                updateConnectionStatus('error', error.message);
+                
+                let errorMsg = 'Gagal menghapus data';
+                if (error.code === 'permission-denied') {
+                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                }
+                
+                showError(errorMsg + ': ' + error.message);
             }
         }
 
