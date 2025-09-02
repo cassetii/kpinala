@@ -885,9 +885,186 @@
             }
         }
 
+        // ===== MOVE ALL FORM LOGIC HERE TO MODULE SCRIPT =====
+        
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function calculateHours(startTime, endTime) {
+            const start = new Date(`2000-01-01 ${startTime}`);
+            const end = new Date(`2000-01-01 ${endTime}`);
+            const diff = end - start;
+            return diff / (1000 * 60 * 60);
+        }
+
+        function showSuccess(message) {
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            successMessage.innerHTML = `<div class="success-message">${message}</div>`;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            errorMessage.innerHTML = `<div class="error-message">${message}</div>`;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            
+            // Show retry button if available
+            if (window.showRetryButton) {
+                window.showRetryButton();
+            }
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 8000); // Longer timeout for error messages
+        }
+
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('📱 DOM Content Loaded - Setting up app...');
+            
+            // Set today's date
             document.getElementById('jobDate').valueAsDate = new Date();
+            
+            // Get all DOM elements
+            const form = document.getElementById('jobForm');
+            const startTimeInput = document.getElementById('startTime');
+            const endTimeInput = document.getElementById('endTime');
+            const totalTimeInput = document.getElementById('totalTime');
+            const submitBtn = document.getElementById('submitBtn');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Time calculation function
+            function calculateTotalTime() {
+                const startTime = startTimeInput.value;
+                const endTime = endTimeInput.value;
+                
+                if (startTime && endTime) {
+                    const start = new Date(`2000-01-01 ${startTime}`);
+                    const end = new Date(`2000-01-01 ${endTime}`);
+                    
+                    if (end > start) {
+                        const diff = end - start;
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        totalTimeInput.value = `${hours}j ${minutes}m`;
+                    } else {
+                        totalTimeInput.value = '';
+                    }
+                }
+            }
+
+            // Add time calculation event listeners
+            startTimeInput.addEventListener('change', calculateTotalTime);
+            endTimeInput.addEventListener('change', calculateTotalTime);
+
+            // Set loading state for submit button
+            function setLoading(isLoading) {
+                submitBtn.disabled = isLoading;
+                if (isLoading) {
+                    submitBtn.innerHTML = '<div class="loading"></div> Menyimpan ke Firebase...';
+                } else {
+                    submitBtn.innerHTML = '💾 Simpan ke Firebase';
+                }
+            }
+
+            // Form submission handler
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('📝 Form submitted - processing...');
+
+                const jobData = {
+                    technician: document.getElementById('technicianName').value,
+                    date: document.getElementById('jobDate').value,
+                    service: document.getElementById('serviceType').value,
+                    startTime: startTimeInput.value,
+                    endTime: endTimeInput.value,
+                    totalTime: totalTimeInput.value,
+                    customer: document.getElementById('customerName').value,
+                    phone: document.getElementById('customerPhone').value,
+                    address: document.getElementById('customerAddress').value,
+                    income: parseInt(document.getElementById('income').value),
+                    createdAt: new Date().toISOString()
+                };
+
+                // Validate time
+                if (new Date(`2000-01-01 ${jobData.endTime}`) <= new Date(`2000-01-01 ${jobData.startTime}`)) {
+                    showError('⚠️ Waktu selesai harus lebih besar dari waktu mulai!');
+                    return;
+                }
+
+                try {
+                    setLoading(true);
+                    console.log('💾 Saving job data to Firebase...', jobData);
+                    
+                    // Call the Firebase function directly (it's in the same scope now)
+                    await saveJobToFirebase(jobData);
+                    
+                    // Reset form
+                    form.reset();
+                    document.getElementById('jobDate').valueAsDate = new Date();
+                    totalTimeInput.value = '';
+
+                    showSuccess('✅ Pekerjaan berhasil disimpan ke Firebase!');
+                } catch (error) {
+                    console.error('❌ Form submission error:', error);
+                    showError('❌ ' + error.message);
+                } finally {
+                    setLoading(false);
+                }
+            });
+
+            // Tab switching
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Update buttons
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update content
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Update content if switching to specific tabs
+                    if (targetTab === 'summary') {
+                        updateUI();
+                    } else if (targetTab === 'reports') {
+                        generateReport();
+                    }
+                });
+            });
+
+            // Make functions globally available
+            window.showSuccess = showSuccess;
+            window.showError = showError;
+            window.formatCurrency = formatCurrency;
+            window.formatDate = formatDate;
+            window.calculateHours = calculateHours;
             
             // Add retry button to header
             const header = document.querySelector('.app-header');
