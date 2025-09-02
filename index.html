@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Teknisi AC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            background: white;
+        }
+
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-loading {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .tab-btn:hover {
+            background: #f5f5f5;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input, 
+        .form-group textarea, 
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus, 
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .total-time {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Summary Styles */
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .export-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            grid-column: 1 / -1;
+        }
+
+        /* Job List */
+        .jobs-container {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .job-date {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .job-income {
+            background: #4CAF50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .job-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        .detail-value {
+            font-size: 0.9rem;
+            color: #333;
+            text-align: right;
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 15px;
+            }
+            
+            .app-title {
+                font-size: 1.5rem;
+            }
+            
+            .tab-btn {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+            
+            .tab-content {
+                padding: 15px;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-header {
+                text-align: center;
+            }
+            
+            .summary-title {
+                font-size: 1.3rem;
+            }
+            
+            .job-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .detail-value {
+                text-align: left;
+                margin-left: 0;
+                margin-top: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="connection-status" id="connectionStatus">🔄 Menghubungkan...</div>
+            <h1 class="app-title">🔧 Monitor Teknisi AC</h1>
+            <p class="app-subtitle">Sistem Pemantauan Pekerjaan Teknisi dengan Firebase</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="input">📝 Input Kerja</button>
+            <button class="tab-btn" data-tab="summary">📊 Summary</button>
+            <button class="tab-btn" data-tab="reports">📋 Laporan</button>
+        </div>
+
+        <!-- Input Tab -->
+        <div class="tab-content active" id="input">
+            <div class="form-container">
+                <div id="successMessage" style="display: none;"></div>
+                <div id="errorMessage" style="display: none;"></div>
+                
+                <form id="jobForm">
+                    <div class="form-group">
+                        <label for="technicianName">👨‍🔧 Nama Teknisi</label>
+                        <input type="text" id="technicianName" placeholder="Masukkan nama teknisi" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="jobDate">📅 Tanggal</label>
+                        <input type="date" id="jobDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="serviceType">🛠️ Jasa</label>
+                        <input type="text" id="serviceType" placeholder="Contoh: Service AC 1 PK, Pasang AC Baru" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>⏰ Waktu Kerja</label>
+                        <div class="time-row">
+                            <div>
+                                <input type="time" id="startTime" placeholder="Mulai" required>
+                            </div>
+                            <div>
+                                <input type="time" id="endTime" placeholder="Selesai" required>
+                            </div>
+                        </div>
+                        <div class="total-time">
+                            <input type="text" id="totalTime" placeholder="Total waktu akan dihitung otomatis" readonly style="background: #f8f9ff; color: #667eea; font-weight: 600;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerName">👤 Nama Customer</label>
+                        <input type="text" id="customerName" placeholder="Nama pelanggan" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerPhone">📞 Nomor Telepon</label>
+                        <input type="tel" id="customerPhone" placeholder="08xxxxxxxxxx" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerAddress">📍 Alamat</label>
+                        <textarea id="customerAddress" rows="3" placeholder="Alamat lengkap pelanggan" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="income">💰 Pemasukan (Rp)</label>
+                        <input type="number" id="income" min="0" placeholder="0" required>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        💾 Simpan ke Firebase
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Tab -->
+        <div class="tab-content" id="summary">
+            <div class="summary-header">
+                <h2 class="summary-title">📊 Summary Pekerjaan</h2>
+                <button class="export-btn" onclick="exportData()">📁 Export Data</button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalJobs">0</div>
+                    <div class="stat-label">Total Pekerjaan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalIncome">Rp 0</div>
+                    <div class="stat-label">Total Pemasukan</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalHours">0h</div>
+                    <div class="stat-label">Total Jam Kerja</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgIncome">Rp 0</div>
+                    <div class="stat-label">Rata-rata Pemasukan</div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div>
+                        <input type="date" id="filterDateFrom" placeholder="Dari tanggal">
+                    </div>
+                    <div>
+                        <input type="date" id="filterDateTo" placeholder="Sampai tanggal">
+                    </div>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchFilter" placeholder="🔍 Cari teknisi, customer, atau jasa...">
+                </div>
+            </div>
+
+            <!-- Jobs List -->
+            <div class="jobs-container" id="jobsList">
+                <div class="empty-state">
+                    <div class="loading"></div>
+                    <p>Memuat data dari Firebase...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-content" id="reports">
+            <div class="summary-header">
+                <h2 class="summary-title">📋 Laporan Detail</h2>
+                <button class="export-btn" onclick="exportReport()">📄 Export Laporan</button>
+            </div>
+            
+            <div id="reportContent">
+                <div class="empty-state">
+                    <div class="loading"></div>
+                    <p>Menganalisis data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRqVYfBdEkOZ9qYNiIRl8uTnM1stl5lBo",
+            authDomain: "kpiteknisi.firebaseapp.com",
+            projectId: "kpiteknisi",
+            storageBucket: "kpiteknisi.firebasestorage.app",
+            messagingSenderId: "61025162198",
+            appId: "1:61025162198:web:084518dca837cbaed40a77",
+            measurementId: "G-1V5KSQEWEZ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // Global variables
+        window.jobs = [];
+        window.filteredJobs = [];
+        window.db = db;
+        window.addDoc = addDoc;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+
+        // Update connection status
+        function updateConnectionStatus(status) {
+            const statusEl = document.getElementById('connectionStatus');
+            switch(status) {
+                case 'connected':
+                    statusEl.textContent = '✅ Terhubung';
+                    statusEl.className = 'connection-status status-connected';
+                    break;
+                case 'loading':
+                    statusEl.textContent = '🔄 Memproses...';
+                    statusEl.className = 'connection-status status-loading';
+                    break;
+                case 'error':
+                    statusEl.textContent = '❌ Error';
+                    statusEl.className = 'connection-status status-disconnected';
+                    break;
+            }
+        }
+
+        // Load jobs from Firebase
+        async function loadJobsFromFirebase() {
+            try {
+                updateConnectionStatus('loading');
+                const q = query(collection(db, 'jobs'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                window.jobs = [];
+                querySnapshot.forEach((doc) => {
+                    window.jobs.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                updateConnectionStatus('connected');
+                updateUI();
+                console.log('Data berhasil dimuat dari Firebase:', window.jobs.length, 'pekerjaan');
+            } catch (error) {
+                console.error('Error loading data from Firebase:', error);
+                updateConnectionStatus('error');
+                showError('Gagal memuat data dari Firebase: ' + error.message);
+            }
+        }
+
+        // Save job to Firebase
+        async function saveJobToFirebase(jobData) {
+            try {
+                updateConnectionStatus('loading');
+                const docRef = await addDoc(collection(db, 'jobs'), jobData);
+                jobData.id = docRef.id;
+                window.jobs.unshift(jobData);
+                updateConnectionStatus('connected');
+                updateUI();
+                return docRef.id;
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+                updateConnectionStatus('error');
+                throw error;
+            }
+        }
+
+        // Delete job from Firebase
+        async function deleteJobFromFirebase(jobId) {
+            try {
+                updateConnectionStatus('loading');
+                await deleteDoc(doc(db, 'jobs', jobId));
+                window.jobs = window.jobs.filter(job => job.id !== jobId);
+                updateConnectionStatus('connected');
+                updateUI();
+                showSuccess('Pekerjaan berhasil dihapus!');
+            } catch (error) {
+                console.error('Error deleting from Firebase:', error);
+                updateConnectionStatus('error');
+                showError('Gagal menghapus data: ' + error.message);
+            }
+        }
+
+        // Make functions globally available
+        window.loadJobsFromFirebase = loadJobsFromFirebase;
+        window.saveJobToFirebase = saveJobToFirebase;
+        window.deleteJobFromFirebase = deleteJobFromFirebase;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('jobDate').valueAsDate = new Date();
+            loadJobsFromFirebase();
+        });
+    </script>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('jobForm');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Time inputs
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const totalTimeInput = document.getElementById('totalTime');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Filter elements
+        const filterDateFrom = document.getElementById('filterDateFrom');
+        const filterDateTo = document.getElementById('filterDateTo');
+        const searchFilter = document.getElementById('searchFilter');
+
+        // Stats elements
+        const totalJobsEl = document.getElementById('totalJobs');
+        const totalIncomeEl = document.getElementById('totalIncome');
+        const totalHoursEl = document.getElementById('totalHours');
+        const avgIncomeEl = document.getElementById('avgIncome');
+        const jobsListEl = document.getElementById('jobsList');
+        const reportContentEl = document.getElementById('reportContent');
+
+        // Tab switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.dataset.tab;
+                switchTab(targetTab);
+            });
+        });
+
+        function switchTab(tabName) {
+            // Update buttons
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update content
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            
+            // Update content if switching to specific tabs
+            if (tabName === 'summary') {
+                updateUI();
+            } else if (tabName === 'reports') {
+                generateReport();
+            }
+        }
+
+        // Time calculation
+        function calculateTotalTime() {
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            
+            if (startTime && endTime) {
+                const start = new Date(`2000-01-01 ${startTime}`);
+                const end = new Date(`2000-01-01 ${endTime}`);
+                
+                if (end > start) {
+                    const diff = end - start;
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    totalTimeInput.value = `${hours}j ${minutes}m`;
+                } else {
+                    totalTimeInput.value = '';
+                }
+            }
+        }
+
+        startTimeInput.addEventListener('change', calculateTotalTime);
+        endTimeInput.addEventListener('change', calculateTotalTime);
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function calculateHours(startTime, endTime) {
+            const start = new Date(`2000-01-01 ${startTime}`);
+            const end = new Date(`2000-01-01 ${endTime}`);
+            const diff = end - start;
+            return diff / (1000 * 60 * 60);
+        }
+
+        function showSuccess(message) {
+            successMessage.innerHTML = `<div class="success-message">${message}</div>`;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            errorMessage.innerHTML = `<div class="error-message">${message}</div>`;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            if (isLoading) {
+                submitBtn.innerHTML = '<div class="loading"></div> Menyimpan...';
+            } else {
+                submitBtn.innerHTML = '💾 Simpan ke Firebase';
+            }
+        }
+
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const jobData = {
+                technician: document.getElementById('technicianName').value,
+                date: document.getElementById('jobDate').value,
+                service: document.getElementById('serviceType').value,
+                startTime: startTimeInput.value,
+                endTime: endTimeInput.value,
+                totalTime: totalTimeInput.value,
+                customer: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                address: document.getElementById('customerAddress').value,
+                income: parseInt(document.getElementById('income').value),
+                createdAt: new Date().toISOString()
+            };
+
+            // Validate time
+            if (new Date(`2000-01-01 ${jobData.endTime}`) <= new Date(`2000-01-01 ${jobData.startTime}`)) {
+                showError('⚠️ Waktu selesai harus lebih besar dari waktu mulai!');
+                return;
+            }
+
+            try {
+                setLoading(true);
+                await saveJobToFirebase(jobData);
+                
+                // Reset form
+                form.reset();
+                document.getElementById('jobDate').valueAsDate = new Date();
+                totalTimeInput.value = '';
+
+                showSuccess('✅ Pekerjaan berhasil disimpan ke Firebase!');
+            } catch (error) {
+                showError('❌ Gagal menyimpan ke Firebase: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Filter functionality
+        function applyFilters() {
+            let filtered = [...window.jobs];
+            
+            // Date filter
+            if (filterDateFrom.value) {
+                filtered = filtered.filter(job => job.date >= filterDateFrom.value);
+            }
+            
+            if (filterDateTo.value) {
+                filtered = filtered.filter(job => job.date <= filterDateTo.value);
+            }
+            
+            // Search filter
+            if (searchFilter.value) {
+                const search = searchFilter.value.toLowerCase();
+                filtered = filtered.filter(job => 
+                    job.technician.toLowerCase().includes(search) ||
+                    job.customer.toLowerCase().includes(search) ||
+                    job.service.toLowerCase().includes(search)
+                );
+            }
+            
+            window.filteredJobs = filtered;
+            renderJobs();
+        }
+
+        // Event listeners for filters
+        filterDateFrom.addEventListener('change', applyFilters);
+        filterDateTo.addEventListener('change', applyFilters);
+        searchFilter.addEventListener('input', applyFilters);
+
+        // Update statistics
+        function updateStats() {
+            const currentJobs = window.filteredJobs.length > 0 ? window.filteredJobs : window.jobs;
+            
+            const totalJobs = currentJobs.length;
+            const totalIncome = currentJobs.reduce((sum, job) => sum + job.income, 0);
+            const totalHours = currentJobs.reduce((sum, job) => {
+                return sum + calculateHours(job.startTime, job.endTime);
+            }, 0);
+            const avgIncome = totalJobs > 0 ? totalIncome / totalJobs : 0;
+
+            totalJobsEl.textContent = totalJobs;
+            totalIncomeEl.textContent = formatCurrency(totalIncome);
+            totalHoursEl.textContent = `${Math.round(totalHours * 10) / 10}h`;
+            avgIncomeEl.textContent = formatCurrency(avgIncome);
+        }
+
+        // Render jobs
+        function renderJobs() {
+            const currentJobs = window.filteredJobs.length > 0 ? window.filteredJobs : window.jobs;
+            
+            if (currentJobs.length === 0) {
+                jobsListEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p>Tidak ada pekerjaan ditemukan</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Tambahkan pekerjaan baru atau ubah filter</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedJobs = [...currentJobs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            jobsListEl.innerHTML = sortedJobs.map(job => `
+                <div class="job-card">
+                    <button class="delete-btn" onclick="deleteJob('${job.id}')">×</button>
+                    <div class="job-header">
+                        <div class="job-date">${formatDate(job.date)}</div>
+                        <div class="job-income">${formatCurrency(job.income)}</div>
+                    </div>
+                    <div class="job-details">
+                        <div class="detail-row">
+                            <div class="detail-label">Teknisi</div>
+                            <div class="detail-value">${job.technician}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Jasa</div>
+                            <div class="detail-value">${job.service}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Customer</div>
+                            <div class="detail-value">${job.customer}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Telepon</div>
+                            <div class="detail-value">${job.phone}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Waktu</div>
+                            <div class="detail-value">${job.startTime} - ${job.endTime}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Alamat</div>
+                            <div class="detail-value">${job.address}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Delete job function
+        async function deleteJob(jobId) {
+            if (confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')) {
+                await deleteJobFromFirebase(jobId);
+            }
+        }
+
+        // Make deleteJob globally available
+        window.deleteJob = deleteJob;
+
+        // Generate reports
+        function generateReport() {
+            if (window.jobs.length === 0) {
+                reportContentEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <p>Belum ada data untuk laporan</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Technician statistics
+            const technicianStats = {};
+            const customerStats = {};
+            const serviceStats = {};
+
+            window.jobs.forEach(job => {
+                // Technician stats
+                if (!technicianStats[job.technician]) {
+                    technicianStats[job.technician] = { jobs: 0, income: 0, hours: 0 };
+                }
+                technicianStats[job.technician].jobs++;
+                technicianStats[job.technician].income += job.income;
+                technicianStats[job.technician].hours += calculateHours(job.startTime, job.endTime);
+
+                // Customer stats
+                if (!customerStats[job.customer]) {
+                    customerStats[job.customer] = { jobs: 0, income: 0 };
+                }
+                customerStats[job.customer].jobs++;
+                customerStats[job.customer].income += job.income;
+
+                // Service stats
+                if (!serviceStats[job.service]) {
+                    serviceStats[job.service] = { jobs: 0, income: 0 };
+                }
+                serviceStats[job.service].jobs++;
+                serviceStats[job.service].income += job.income;
+            });
+
+            reportContentEl.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">📊 Performa Teknisi</h3>
+                    ${Object.entries(technicianStats).map(([name, stats]) => `
+                        <div class="job-card">
+                            <div class="detail-row">
+                                <div class="detail-label">Teknisi</div>
+                                <div class="detail-value" style="font-weight: bold;">${name}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Pekerjaan</div>
+                                <div class="detail-value">${stats.jobs} pekerjaan</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Pemasukan</div>
+                                <div class="detail-value">${formatCurrency(stats.income)}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Jam Kerja</div>
+                                <div class="detail-value">${Math.round(stats.hours * 10) / 10} jam</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">🛠️ Jasa Populer</h3>
+                    ${Object.entries(serviceStats)
+                        .sort((a, b) => b[1].jobs - a[1].jobs)
+                        .slice(0, 5)
+                        .map(([service, stats]) => `
+                        <div class="job-card">
+                            <div class="detail-row">
+                                <div class="detail-label">Jasa</div>
+                                <div class="detail-value" style="font-weight: bold;">${service}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Frekuensi</div>
+                                <div class="detail-value">${stats.jobs} kali</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Total Pemasukan</div>
+                                <div class="detail-value">${formatCurrency(stats.income)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 15px; color: #667eea;">👥 Customer Terbanyak</h3>
+                    ${Object.entries(customerStats)
+                        .sort((a, b) => b[1].jobs - a[1].jobs)
+                        .slice(0, 5)
+                        .map(([customer, stats]) => `
+                        <div class="job-card">
+                            <div class="detail-row">
+                                <div class="detail-label">Customer</div>
+                                <div class="detail-value" style="font-weight: bold;">${customer}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Pekerjaan</div>
+                                <div class="detail-value">${stats.jobs} kali</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Total Bayar</div>
+                                <div class="detail-value">${formatCurrency(stats.income)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Export functions
+        function exportData() {
+            if (window.jobs.length === 0) {
+                alert('⚠️ Tidak ada data untuk diekspor');
+                return;
+            }
+
+            const csvContent = [
+                ['Tanggal', 'Teknisi', 'Jasa', 'Customer', 'Telepon', 'Alamat', 'Mulai', 'Selesai', 'Total Waktu', 'Pemasukan'],
+                ...window.jobs.map(job => [
+                    job.date,
+                    job.technician,
+                    job.service,
+                    job.customer,
+                    job.phone,
+                    job.address.replace(/\n/g, ' '),
+                    job.startTime,
+                    job.endTime,
+                    job.totalTime,
+                    job.income
+                ])
+            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+            downloadFile('data-teknisi-ac.csv', csvContent);
+        }
+
+        function exportReport() {
+            if (window.jobs.length === 0) {
+                alert('⚠️ Tidak ada data untuk laporan');
+                return;
+            }
+
+            const totalIncome = window.jobs.reduce((sum, job) => sum + job.income, 0);
+            const totalHours = window.jobs.reduce((sum, job) => sum + calculateHours(job.startTime, job.endTime), 0);
+
+            const reportContent = `
+LAPORAN TEKNISI AC (Firebase Sync)
+==================================
+Tanggal: ${new Date().toLocaleDateString('id-ID')}
+Total Pekerjaan: ${window.jobs.length}
+Total Pemasukan: ${formatCurrency(totalIncome)}
+Total Jam Kerja: ${Math.round(totalHours * 10) / 10} jam
+
+DETAIL PEKERJAAN:
+${window.jobs.map((job, index) => `
+${index + 1}. ${formatDate(job.date)}
+   ID: ${job.id}
+   Teknisi: ${job.technician}
+   Jasa: ${job.service}
+   Customer: ${job.customer} (${job.phone})
+   Alamat: ${job.address.replace(/\n/g, ', ')}
+   Waktu: ${job.startTime} - ${job.endTime} (${job.totalTime})
+   Pemasukan: ${formatCurrency(job.income)}
+`).join('')}
+            `.trim();
+
+            downloadFile('laporan-teknisi-ac.txt', reportContent);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        // Update UI
+        function updateUI() {
+            window.filteredJobs = [];
+            applyFilters();
+            updateStats();
+        }
+
+        // Make functions globally available
+        window.exportData = exportData;
+        window.exportReport = exportReport;
+        window.updateUI = updateUI;
+    </script>
+</body>
+</html>
