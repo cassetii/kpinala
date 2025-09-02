@@ -637,11 +637,9 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Import Firebase SDK
+        // Import Firebase SDK (No Auth Version)
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, orderBy, query, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -654,94 +652,63 @@
             measurementId: "G-1V5KSQEWEZ"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase (No Auth)
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
         
-        // Initialize Analytics with error handling
+        // Initialize Analytics with error handling (optional)
         let analytics = null;
         try {
+            const { getAnalytics } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js');
             analytics = getAnalytics(app);
+            console.log('✅ Analytics initialized');
         } catch (error) {
-            console.log('Analytics not available:', error);
+            console.log('ℹ️ Analytics not available:', error.message);
         }
 
-        // Global variables
+        // Global variables (No Auth)
         window.jobs = [];
         window.filteredJobs = [];
         window.db = db;
-        window.auth = auth;
         window.addDoc = addDoc;
         window.collection = collection;
         window.getDocs = getDocs;
         window.deleteDoc = deleteDoc;
         window.doc = doc;
-        window.isAuthenticated = false;
 
         // Update connection status
         function updateConnectionStatus(status, message = '') {
             const statusEl = document.getElementById('connectionStatus');
             switch(status) {
                 case 'connected':
-                    statusEl.textContent = '✅ Terhubung';
+                    statusEl.textContent = '✅ Terhubung Firebase';
                     statusEl.className = 'connection-status status-connected';
                     break;
                 case 'loading':
-                    statusEl.textContent = '🔄 Menghubungkan...';
-                    statusEl.className = 'connection-status status-loading';
-                    break;
-                case 'authenticating':
-                    statusEl.textContent = '🔐 Autentikasi...';
+                    statusEl.textContent = '🔄 Memuat data...';
                     statusEl.className = 'connection-status status-loading';
                     break;
                 case 'error':
-                    statusEl.textContent = '❌ Error';
+                    statusEl.textContent = '❌ Error Firebase';
                     statusEl.className = 'connection-status status-disconnected';
                     statusEl.title = message;
+                    break;
+                case 'ready':
+                    statusEl.textContent = '🚀 Siap digunakan';
+                    statusEl.className = 'connection-status status-connected';
                     break;
             }
         }
 
-        // Authentication handler
-        function initAuth() {
-            return new Promise((resolve, reject) => {
-                updateConnectionStatus('authenticating');
-                
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        console.log('User authenticated:', user.uid);
-                        window.isAuthenticated = true;
-                        resolve(user);
-                    } else {
-                        console.log('No user, signing in anonymously...');
-                        signInAnonymously(auth).then((result) => {
-                            console.log('Anonymous auth successful:', result.user.uid);
-                            window.isAuthenticated = true;
-                            resolve(result.user);
-                        }).catch((error) => {
-                            console.error('Anonymous auth failed:', error);
-                            window.isAuthenticated = false;
-                            reject(error);
-                        });
-                    }
-                });
-            });
-        }
-
-        // Load jobs from Firebase with better error handling
+        // Load jobs from Firebase (Simplified - No Auth)
         async function loadJobsFromFirebase() {
             try {
-                if (!window.isAuthenticated) {
-                    console.log('Waiting for authentication...');
-                    await initAuth();
-                }
-
                 updateConnectionStatus('loading');
+                console.log('🔄 Loading data from Firebase...');
                 
                 // Add timeout to prevent hanging
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout loading data')), 10000)
+                    setTimeout(() => reject(new Error('Timeout: Koneksi terlalu lama')), 15000)
                 );
 
                 const dataPromise = (async () => {
@@ -763,37 +730,37 @@
                 
                 updateConnectionStatus('connected');
                 updateUI();
-                console.log('✅ Data berhasil dimuat dari Firebase:', window.jobs.length, 'pekerjaan');
+                console.log('✅ Data berhasil dimuat:', window.jobs.length, 'pekerjaan');
                 
             } catch (error) {
-                console.error('❌ Error loading data from Firebase:', error);
+                console.error('❌ Error loading Firebase data:', error);
                 updateConnectionStatus('error', error.message);
                 
-                // Show user-friendly error message
+                // User-friendly error messages
                 let errorMsg = 'Gagal memuat data dari Firebase';
+                
                 if (error.code === 'permission-denied') {
-                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                    errorMsg = '🔒 Akses ditolak. Pastikan Firestore Rules sudah di-set ke "test mode".';
                 } else if (error.code === 'unavailable') {
-                    errorMsg = 'Firebase tidak tersedia. Periksa koneksi internet.';
+                    errorMsg = '🌐 Firebase tidak tersedia. Periksa koneksi internet Anda.';
                 } else if (error.message.includes('Timeout')) {
-                    errorMsg = 'Koneksi timeout. Coba lagi.';
+                    errorMsg = '⏰ Koneksi timeout. Firebase mungkin sedang lambat.';
+                } else if (error.code === 'not-found') {
+                    errorMsg = '📋 Database Firebase belum dibuat. Buat Firestore Database terlebih dahulu.';
                 }
                 
-                showError(errorMsg + ' Detail: ' + error.message);
+                showError(errorMsg + '<br><small>Detail teknis: ' + error.message + '</small>');
             }
         }
 
-        // Save job to Firebase with better error handling
+        // Save job to Firebase (Simplified - No Auth)
         async function saveJobToFirebase(jobData) {
             try {
-                if (!window.isAuthenticated) {
-                    await initAuth();
-                }
-
                 updateConnectionStatus('loading');
+                console.log('💾 Saving to Firebase...');
                 
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout saving data')), 10000)
+                    setTimeout(() => reject(new Error('Timeout: Penyimpanan terlalu lama')), 15000)
                 );
 
                 const savePromise = addDoc(collection(db, 'jobs'), jobData);
@@ -803,6 +770,8 @@
                 window.jobs.unshift(jobData);
                 updateConnectionStatus('connected');
                 updateUI();
+                
+                console.log('✅ Data saved with ID:', docRef.id);
                 return docRef.id;
                 
             } catch (error) {
@@ -810,27 +779,27 @@
                 updateConnectionStatus('error', error.message);
                 
                 let errorMsg = 'Gagal menyimpan ke Firebase';
+                
                 if (error.code === 'permission-denied') {
-                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                    errorMsg = '🔒 Akses ditolak saat menyimpan. Periksa Firestore Rules.';
                 } else if (error.code === 'unavailable') {
-                    errorMsg = 'Firebase tidak tersedia. Periksa koneksi internet.';
+                    errorMsg = '🌐 Firebase tidak tersedia saat menyimpan.';
+                } else if (error.message.includes('Timeout')) {
+                    errorMsg = '⏰ Timeout saat menyimpan data.';
                 }
                 
                 throw new Error(errorMsg + ': ' + error.message);
             }
         }
 
-        // Delete job from Firebase with better error handling
+        // Delete job from Firebase (Simplified - No Auth)
         async function deleteJobFromFirebase(jobId) {
             try {
-                if (!window.isAuthenticated) {
-                    await initAuth();
-                }
-
                 updateConnectionStatus('loading');
+                console.log('🗑️ Deleting from Firebase:', jobId);
                 
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout deleting data')), 10000)
+                    setTimeout(() => reject(new Error('Timeout: Penghapusan terlalu lama')), 15000)
                 );
 
                 const deletePromise = deleteDoc(doc(db, 'jobs', jobId));
@@ -839,7 +808,7 @@
                 window.jobs = window.jobs.filter(job => job.id !== jobId);
                 updateConnectionStatus('connected');
                 updateUI();
-                showSuccess('✅ Pekerjaan berhasil dihapus!');
+                showSuccess('✅ Pekerjaan berhasil dihapus dari Firebase!');
                 
             } catch (error) {
                 console.error('❌ Error deleting from Firebase:', error);
@@ -847,22 +816,119 @@
                 
                 let errorMsg = 'Gagal menghapus data';
                 if (error.code === 'permission-denied') {
-                    errorMsg = 'Akses ditolak. Periksa Firebase rules.';
+                    errorMsg = '🔒 Akses ditolak saat menghapus.';
                 }
                 
                 showError(errorMsg + ': ' + error.message);
             }
         }
 
-        // Make functions globally available
+        // Make functions globally available (No Auth)
         window.loadJobsFromFirebase = loadJobsFromFirebase;
         window.saveJobToFirebase = saveJobToFirebase;
         window.deleteJobFromFirebase = deleteJobFromFirebase;
 
-        // Initialize app
+        // Retry mechanism for failed operations
+        async function retryOperation(operation, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    console.warn(`🔄 Retry ${i + 1}/${maxRetries} failed:`, error.message);
+                    if (i === maxRetries - 1) throw error;
+                    
+                    // Wait before retry (exponential backoff)
+                    const delay = Math.min(Math.pow(2, i) * 1000, 5000); // Max 5 seconds
+                    console.log(`⏱️ Waiting ${delay}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        // Simple initialization without authentication
+        async function initializeApp() {
+            console.log('🚀 Initializing Firebase App (No Auth)...');
+            
+            try {
+                updateConnectionStatus('loading');
+                
+                // Test Firebase connection first
+                console.log('🔍 Testing Firebase connection...');
+                
+                // Try to load data with retry mechanism
+                await retryOperation(() => loadJobsFromFirebase(), 3);
+                
+                updateConnectionStatus('ready');
+                console.log('✅ Firebase App initialized successfully!');
+                
+            } catch (error) {
+                console.error('❌ Firebase initialization failed:', error);
+                updateConnectionStatus('error', error.message);
+                
+                // Show helpful setup message
+                const setupMessage = `
+                    <strong>⚠️ Setup Firebase diperlukan:</strong><br><br>
+                    <strong>1. Buat Firestore Database:</strong><br>
+                    • Buka <a href="https://console.firebase.google.com/project/kpiteknisi/firestore" target="_blank">Firebase Console</a><br>
+                    • Klik "Create database" → "Start in test mode"<br><br>
+                    
+                    <strong>2. Set Firestore Rules:</strong><br>
+                    • Di tab "Rules", ganti dengan:<br>
+                    <code>allow read, write: if true;</code><br><br>
+                    
+                    <strong>3. Refresh halaman ini</strong><br><br>
+                    
+                    <small>Detail error: ${error.message}</small>
+                `;
+                
+                showError(setupMessage);
+            }
+        }
+
+        // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('jobDate').valueAsDate = new Date();
-            loadJobsFromFirebase();
+            
+            // Add retry button to header
+            const header = document.querySelector('.app-header');
+            const retryBtn = document.createElement('button');
+            retryBtn.innerHTML = '🔄 Coba Lagi';
+            retryBtn.style.cssText = `
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                background: rgba(255,255,255,0.2);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.3);
+                border-radius: 20px;
+                padding: 8px 15px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+                transition: all 0.3s ease;
+            `;
+            retryBtn.onmouseover = () => {
+                retryBtn.style.background = 'rgba(255,255,255,0.3)';
+            };
+            retryBtn.onmouseout = () => {
+                retryBtn.style.background = 'rgba(255,255,255,0.2)';
+            };
+            retryBtn.onclick = () => {
+                retryBtn.style.display = 'none';
+                initializeApp();
+            };
+            header.appendChild(retryBtn);
+            
+            // Show retry button on error
+            window.showRetryButton = () => {
+                retryBtn.style.display = 'block';
+            };
+            
+            // Start initialization
+            setTimeout(() => {
+                initializeApp();
+            }, 500); // Small delay to ensure DOM is fully ready
         });
     </script>
 
@@ -980,9 +1046,15 @@
             errorMessage.innerHTML = `<div class="error-message">${message}</div>`;
             errorMessage.style.display = 'block';
             successMessage.style.display = 'none';
+            
+            // Show retry button if available
+            if (window.showRetryButton) {
+                window.showRetryButton();
+            }
+            
             setTimeout(() => {
                 errorMessage.style.display = 'none';
-            }, 5000);
+            }, 8000); // Longer timeout for error messages
         }
 
         function setLoading(isLoading) {
