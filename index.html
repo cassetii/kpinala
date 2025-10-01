@@ -214,6 +214,33 @@
             box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
         }
 
+        /* Filter Technician Buttons */
+        .tech-filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .tech-filter-btn:hover {
+            border-color: #2a5298;
+            color: #2a5298;
+            transform: translateY(-1px);
+        }
+
+        .tech-filter-btn.active {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            border-color: #2a5298;
+            box-shadow: 0 3px 10px rgba(42, 82, 152, 0.3);
+        }
+
         .time-inputs {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -267,6 +294,16 @@
         .btn.success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .export-buttons .btn {
+            flex: 1;
         }
 
         .message {
@@ -362,6 +399,18 @@
             grid-template-columns: 1fr 1fr auto;
             gap: 15px;
             align-items: end;
+            margin-bottom: 15px;
+        }
+
+        .technician-filter {
+            margin-top: 15px;
+        }
+
+        .technician-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .clear-filter {
@@ -587,6 +636,10 @@
                 justify-content: center;
                 margin-top: 15px;
             }
+
+            .export-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -714,9 +767,28 @@
                         </div>
                         <button class="clear-filter" onclick="clearFilters()">🗑️ Clear</button>
                     </div>
+
+                    <!-- Technician Filter -->
+                    <div class="technician-filter">
+                        <label style="font-weight: 600; color: #495057; font-size: 14px;">Filter Teknisi:</label>
+                        <div class="technician-filter-grid">
+                            <button class="tech-filter-btn active" onclick="filterByTechnician('all')">Semua</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Alpha')">Alpha</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Beta')">Beta</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Charlie')">Charlie</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Delta')">Delta</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Echo')">Echo</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Gamma')">Gamma</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Fanta')">Fanta</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Geronimo')">Geronimo</button>
+                        </div>
+                    </div>
                 </div>
 
-                <button class="btn secondary" onclick="exportCSV()" style="margin-bottom: 20px;">📁 Export CSV</button>
+                <div class="export-buttons">
+                    <button class="btn secondary" onclick="exportCSV()">📁 Export CSV</button>
+                    <button class="btn success" onclick="exportExcel()">📊 Export Excel</button>
+                </div>
 
                 <div id="jobsList"></div>
             </div>
@@ -738,6 +810,9 @@
     <!-- Firebase SDK v8 (Most Compatible) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         // FIREBASE CONFIGURATION
@@ -760,6 +835,7 @@
         let filteredJobs = [];
         let selectedTechnicians = [];
         let deleteJobId = null;
+        let currentTechnicianFilter = 'all';
         
         // DOM ELEMENTS
         const form = document.getElementById('jobForm');
@@ -812,6 +888,20 @@
             debug(`Selected technicians: ${selectedTechnicians.join(', ')}`);
         }
 
+        // FILTER BY TECHNICIAN
+        function filterByTechnician(technicianName) {
+            currentTechnicianFilter = technicianName;
+            
+            // Update button states
+            document.querySelectorAll('.tech-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            applyFilters();
+            debug(`Filtering by technician: ${technicianName}`);
+        }
+
         // SET TODAY'S DATE
         document.getElementById('tanggal').valueAsDate = new Date();
 
@@ -851,20 +941,37 @@
             filteredJobs = allJobs.filter(job => {
                 const jobDate = job.tanggal;
                 
+                // Date filter
                 if (startDate && jobDate < startDate) return false;
                 if (endDate && jobDate > endDate) return false;
+                
+                // Technician filter
+                if (currentTechnicianFilter !== 'all') {
+                    const jobTechnicians = job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : [];
+                    if (!jobTechnicians.includes(currentTechnicianFilter)) return false;
+                }
                 
                 return true;
             });
 
             updateDisplay();
-            debug(`Applied filters: ${startDate || 'all'} to ${endDate || 'all'} - ${filteredJobs.length} results`);
+            debug(`Applied filters: ${startDate || 'all'} to ${endDate || 'all'}, Technician: ${currentTechnicianFilter} - ${filteredJobs.length} results`);
         }
 
         // CLEAR FILTERS
         function clearFilters() {
             filterStartDate.value = '';
             filterEndDate.value = '';
+            currentTechnicianFilter = 'all';
+            
+            // Reset technician filter buttons
+            document.querySelectorAll('.tech-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === 'Semua') {
+                    btn.classList.add('active');
+                }
+            });
+            
             filteredJobs = [...allJobs];
             updateDisplay();
             debug('Filters cleared');
@@ -1217,7 +1324,7 @@
                         <h3>Tidak ada data</h3>
                         <p>${allJobs.length === 0 ? 
                             'Belum ada data pekerjaan.<br>Tambahkan data baru di tab Input Data.' : 
-                            'Tidak ada data yang sesuai dengan filter.<br>Coba ubah rentang tanggal filter.'
+                            'Tidak ada data yang sesuai dengan filter.<br>Coba ubah rentang tanggal atau filter teknisi.'
                         }</p>
                     </div>
                 `;
@@ -1295,6 +1402,125 @@
             debug('📁 CSV exported');
         }
 
+        // EXPORT EXCEL
+        function exportExcel() {
+            if (filteredJobs.length === 0) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = filteredJobs.map(job => ({
+                'Tanggal': job.tanggal || '',
+                'Teknisi': job.teknisi || '',
+                'Jasa': job.jasa || '',
+                'Customer': job.customer || '',
+                'Telepon': job.telepon || '',
+                'Alamat': job.alamat || '',
+                'Waktu Mulai': job.waktuMulai || '',
+                'Waktu Selesai': job.waktuSelesai || '',
+                'Total Waktu': job.totalWaktu || '',
+                'Pemasukan (Rp)': job.pemasukan || 0
+            }));
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Set column widths
+            const colWidths = [
+                { wch: 12 }, // Tanggal
+                { wch: 20 }, // Teknisi
+                { wch: 25 }, // Jasa
+                { wch: 20 }, // Customer
+                { wch: 15 }, // Telepon
+                { wch: 30 }, // Alamat
+                { wch: 12 }, // Waktu Mulai
+                { wch: 12 }, // Waktu Selesai
+                { wch: 12 }, // Total Waktu
+                { wch: 15 }  // Pemasukan
+            ];
+            ws['!cols'] = colWidths;
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Teknisi');
+
+            // Create summary sheet
+            const summaryData = [];
+            
+            // Get unique technicians
+            const technicians = [...new Set(allJobs.flatMap(job => 
+                job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : []
+            ))];
+
+            // Calculate summary for each technician
+            technicians.forEach(tech => {
+                const techJobs = filteredJobs.filter(job => {
+                    const jobTechs = job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : [];
+                    return jobTechs.includes(tech);
+                });
+
+                let totalJam = 0;
+                techJobs.forEach(job => {
+                    if (job.waktuMulai && job.waktuSelesai) {
+                        const start = new Date(`2000-01-01 ${job.waktuMulai}`);
+                        const end = new Date(`2000-01-01 ${job.waktuSelesai}`);
+                        const diff = end - start;
+                        totalJam += diff / (1000 * 60 * 60);
+                    }
+                });
+
+                summaryData.push({
+                    'Teknisi': tech,
+                    'Total Pekerjaan': techJobs.length,
+                    'Total Jam Kerja': Math.round(totalJam * 10) / 10,
+                    'Total Pendapatan (Rp)': techJobs.reduce((sum, job) => sum + (job.pemasukan || 0), 0)
+                });
+            });
+
+            // Sort summary by total pendapatan
+            summaryData.sort((a, b) => b['Total Pendapatan (Rp)'] - a['Total Pendapatan (Rp)']);
+
+            // Add totals row
+            summaryData.push({
+                'Teknisi': 'TOTAL',
+                'Total Pekerjaan': filteredJobs.length,
+                'Total Jam Kerja': summaryData.reduce((sum, row) => sum + row['Total Jam Kerja'], 0),
+                'Total Pendapatan (Rp)': filteredJobs.reduce((sum, job) => sum + (job.pemasukan || 0), 0)
+            });
+
+            // Create summary worksheet
+            const ws2 = XLSX.utils.json_to_sheet(summaryData);
+            
+            // Set column widths for summary
+            const summaryColWidths = [
+                { wch: 20 }, // Teknisi
+                { wch: 15 }, // Total Pekerjaan
+                { wch: 15 }, // Total Jam Kerja
+                { wch: 20 }  // Total Pendapatan
+            ];
+            ws2['!cols'] = summaryColWidths;
+
+            // Add summary worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws2, 'Ringkasan');
+
+            // Generate filename with date range if filtered
+            let filename = 'data-teknisi';
+            if (filterStartDate.value || filterEndDate.value) {
+                if (filterStartDate.value) filename += `-dari-${filterStartDate.value}`;
+                if (filterEndDate.value) filename += `-sampai-${filterEndDate.value}`;
+            }
+            if (currentTechnicianFilter !== 'all') {
+                filename += `-${currentTechnicianFilter}`;
+            }
+            filename += `-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            // Save Excel file
+            XLSX.writeFile(wb, filename);
+            
+            debug('📊 Excel exported with summary');
+        }
+
         // UTILITY FUNCTIONS
         function formatRupiah(amount) {
             return new Intl.NumberFormat('id-ID', {
@@ -1318,8 +1544,10 @@
         // MAKE FUNCTIONS GLOBAL
         window.showTab = showTab;
         window.exportCSV = exportCSV;
+        window.exportExcel = exportExcel;
         window.clearFilters = clearFilters;
         window.toggleTechnician = toggleTechnician;
+        window.filterByTechnician = filterByTechnician;
         window.editJob = editJob;
         window.saveEdit = saveEdit;
         window.cancelEdit = cancelEdit;
