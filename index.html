@@ -184,7 +184,7 @@
         /* Technician Selection */
         .technician-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 10px;
             margin-top: 10px;
         }
@@ -408,7 +408,7 @@
 
         .technician-filter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
             gap: 8px;
             margin-top: 10px;
         }
@@ -675,8 +675,20 @@
                             <div class="tech-btn" onclick="toggleTechnician('Gamma')">Gamma</div>
                             <div class="tech-btn" onclick="toggleTechnician('Fanta')">Fanta</div>
                             <div class="tech-btn" onclick="toggleTechnician('Geronimo')">Geronimo</div>
+                            <div class="tech-btn" onclick="toggleTechnician('Hotel')">Hotel</div>
+                            <div class="tech-btn" onclick="toggleTechnician('India')">India</div>
+                            <div class="tech-btn" onclick="toggleTechnician('Jericho')">Jericho</div>
+                            <div class="tech-btn" onclick="toggleTechnician('Kilo')">Kilo</div>
+                            <div class="tech-btn" onclick="toggleTechnician('External')">External</div>
                         </div>
                         <input type="hidden" id="teknisi" required>
+                        
+                        <!-- External Input Field -->
+                        <div id="externalInputDiv" style="display: none; margin-top: 15px;">
+                            <label style="font-size: 14px; color: #495057;">📝 Nama External:</label>
+                            <input type="text" id="externalName" placeholder="Masukkan nama teknisi external..." style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; margin-top: 5px;">
+                        </div>
+                        
                         <small style="color: #6c757d; margin-top: 5px; display: block;">Pilih satu atau beberapa teknisi</small>
                     </div>
 
@@ -756,6 +768,14 @@
                 <!-- Filter Section -->
                 <div class="filters">
                     <h3>🔍 Filter Data</h3>
+                    
+                    <!-- Search Box -->
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>🔎 Cari Data:</label>
+                        <input type="text" id="searchInput" placeholder="Cari customer, jasa, alamat, telepon...">
+                        <small style="color: #6c757d; margin-top: 5px; display: block;">Cari berdasarkan nama customer, jenis jasa, alamat, atau nomor telepon</small>
+                    </div>
+
                     <div class="filter-row">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>Dari Tanggal:</label>
@@ -781,7 +801,13 @@
                             <button class="tech-filter-btn" onclick="filterByTechnician('Gamma')">Gamma</button>
                             <button class="tech-filter-btn" onclick="filterByTechnician('Fanta')">Fanta</button>
                             <button class="tech-filter-btn" onclick="filterByTechnician('Geronimo')">Geronimo</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Hotel')">Hotel</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('India')">India</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Jericho')">Jericho</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('Kilo')">Kilo</button>
+                            <button class="tech-filter-btn" onclick="filterByTechnician('External')">External</button>
                         </div>
+                        <small style="color: #6c757d; margin-top: 8px; display: block; font-size: 12px;">💡 Filter "External" akan menampilkan semua teknisi external</small>
                     </div>
                 </div>
 
@@ -836,6 +862,7 @@
         let selectedTechnicians = [];
         let deleteJobId = null;
         let currentTechnicianFilter = 'all';
+        let searchQuery = '';
         
         // DOM ELEMENTS
         const form = document.getElementById('jobForm');
@@ -879,14 +906,46 @@
             if (selectedTechnicians.includes(name)) {
                 selectedTechnicians = selectedTechnicians.filter(t => t !== name);
                 btn.classList.remove('selected');
+                
+                // Hide external input if External is deselected
+                if (name === 'External') {
+                    document.getElementById('externalInputDiv').style.display = 'none';
+                    document.getElementById('externalName').value = '';
+                }
             } else {
                 selectedTechnicians.push(name);
                 btn.classList.add('selected');
+                
+                // Show external input if External is selected
+                if (name === 'External') {
+                    document.getElementById('externalInputDiv').style.display = 'block';
+                }
             }
             
-            document.getElementById('teknisi').value = selectedTechnicians.join(', ');
+            updateTeknisiField();
             debug(`Selected technicians: ${selectedTechnicians.join(', ')}`);
         }
+        
+        // UPDATE TEKNISI FIELD
+        function updateTeknisiField() {
+            const teknisiList = selectedTechnicians.map(tech => {
+                if (tech === 'External') {
+                    const externalName = document.getElementById('externalName').value.trim();
+                    return externalName ? `External (${externalName})` : 'External';
+                }
+                return tech;
+            });
+            
+            document.getElementById('teknisi').value = teknisiList.join(', ');
+        }
+        
+        // Add event listener for external name input
+        setTimeout(() => {
+            const externalNameInput = document.getElementById('externalName');
+            if (externalNameInput) {
+                externalNameInput.addEventListener('input', updateTeknisiField);
+            }
+        }, 100);
 
         // FILTER BY TECHNICIAN
         function filterByTechnician(technicianName) {
@@ -932,6 +991,22 @@
         // FILTER EVENT LISTENERS
         filterStartDate.addEventListener('change', applyFilters);
         filterEndDate.addEventListener('change', applyFilters);
+        
+        // SEARCH EVENT LISTENER with debounce
+        let searchTimeout;
+        setTimeout(() => {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        searchQuery = this.value.toLowerCase().trim();
+                        applyFilters();
+                        debug(`Search query: "${searchQuery}"`);
+                    }, 300);
+                });
+            }
+        }, 100);
 
         // APPLY FILTERS
         function applyFilters() {
@@ -947,21 +1022,52 @@
                 
                 // Technician filter
                 if (currentTechnicianFilter !== 'all') {
-                    const jobTechnicians = job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : [];
-                    if (!jobTechnicians.includes(currentTechnicianFilter)) return false;
+                    const jobTechnicianField = job.teknisi || '';
+                    
+                    // Special handling for External filter - match any "External" text
+                    if (currentTechnicianFilter === 'External') {
+                        if (!jobTechnicianField.includes('External')) return false;
+                    } else {
+                        // For other technicians, match exact name
+                        const jobTechnicians = jobTechnicianField.split(',').map(t => t.trim());
+                        const matchFound = jobTechnicians.some(tech => {
+                            // Check if it's an exact match or starts with the technician name
+                            return tech === currentTechnicianFilter || tech.startsWith(currentTechnicianFilter + ' ');
+                        });
+                        if (!matchFound) return false;
+                    }
+                }
+                
+                // Search filter
+                if (searchQuery) {
+                    const searchableText = [
+                        job.customer || '',
+                        job.jasa || '',
+                        job.alamat || '',
+                        job.telepon || '',
+                        job.teknisi || ''
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchableText.includes(searchQuery)) return false;
                 }
                 
                 return true;
             });
 
             updateDisplay();
-            debug(`Applied filters: ${startDate || 'all'} to ${endDate || 'all'}, Technician: ${currentTechnicianFilter} - ${filteredJobs.length} results`);
+            debug(`Applied filters: ${startDate || 'all'} to ${endDate || 'all'}, Technician: ${currentTechnicianFilter}, Search: "${searchQuery}" - ${filteredJobs.length} results`);
         }
 
         // CLEAR FILTERS
         function clearFilters() {
             filterStartDate.value = '';
             filterEndDate.value = '';
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            searchQuery = '';
             currentTechnicianFilter = 'all';
             
             // Reset technician filter buttons
@@ -1140,6 +1246,16 @@
                 return;
             }
             
+            // Validate External technician name
+            if (selectedTechnicians.includes('External')) {
+                const externalName = document.getElementById('externalName').value.trim();
+                if (!externalName) {
+                    showMessage('⚠️ Masukkan nama teknisi external!', true);
+                    document.getElementById('externalName').focus();
+                    return;
+                }
+            }
+            
             const mulai = document.getElementById('waktuMulai').value;
             const selesai = document.getElementById('waktuSelesai').value;
             
@@ -1148,8 +1264,17 @@
                 return;
             }
             
+            // Build teknisi string with external name if applicable
+            const teknisiList = selectedTechnicians.map(tech => {
+                if (tech === 'External') {
+                    const externalName = document.getElementById('externalName').value.trim();
+                    return `External (${externalName})`;
+                }
+                return tech;
+            });
+            
             const jobData = {
-                teknisi: selectedTechnicians.join(', '),
+                teknisi: teknisiList.join(', '),
                 tanggal: document.getElementById('tanggal').value,
                 jasa: document.getElementById('jasa').value.trim(),
                 waktuMulai: mulai,
@@ -1175,6 +1300,8 @@
                 document.getElementById('tanggal').valueAsDate = new Date();
                 selectedTechnicians = [];
                 document.querySelectorAll('.tech-btn').forEach(btn => btn.classList.remove('selected'));
+                document.getElementById('externalInputDiv').style.display = 'none';
+                document.getElementById('externalName').value = '';
                 
                 debug('✅ Form reset complete');
                 
@@ -1449,15 +1576,31 @@
             const summaryData = [];
             
             // Get unique technicians
-            const technicians = [...new Set(allJobs.flatMap(job => 
-                job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : []
-            ))];
+            const technicians = [...new Set(allJobs.flatMap(job => {
+                if (!job.teknisi) return [];
+                return job.teknisi.split(',').map(t => {
+                    const trimmed = t.trim();
+                    // Group all External technicians together
+                    if (trimmed.includes('External')) {
+                        return 'External (All)';
+                    }
+                    return trimmed;
+                });
+            }))];
 
             // Calculate summary for each technician
             technicians.forEach(tech => {
                 const techJobs = filteredJobs.filter(job => {
-                    const jobTechs = job.teknisi ? job.teknisi.split(',').map(t => t.trim()) : [];
-                    return jobTechs.includes(tech);
+                    if (!job.teknisi) return false;
+                    const jobTechs = job.teknisi.split(',').map(t => t.trim());
+                    
+                    if (tech === 'External (All)') {
+                        // Match any External technician
+                        return jobTechs.some(jt => jt.includes('External'));
+                    } else {
+                        // Match exact technician
+                        return jobTechs.includes(tech);
+                    }
                 });
 
                 let totalJam = 0;
